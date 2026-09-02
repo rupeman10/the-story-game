@@ -1,0 +1,2476 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>The Story &mdash; Church History Study Game</title>
+<style>
+/* ---------------------------------------------------------------- tokens */
+:root{
+  --bg:#f6f1e7; --bg2:#ece3d4; --surface:#fffdf8; --surface2:#f4eee2;
+  --ink:#2e2618; --ink2:#6b6051; --ink3:#9a8f7d;
+  --line:#e0d6c2;
+  --gold:#c1873a; --gold2:#a06f27; --goldsoft:#f6e8cf;
+  --green:#4f9d5d; --green2:#3d7d49; --greensoft:#e2f2e2;
+  --warm:#c9663f; --warmsoft:#fbe8df;
+  --violet:#7a5ba6; --violetsoft:#efe7f7;
+  --flame:#e07b39;
+  --radius:18px; --radius-sm:12px;
+  --shadow:0 1px 2px rgba(46,38,24,.06), 0 6px 18px rgba(46,38,24,.07);
+  --shadow-lift:0 2px 4px rgba(46,38,24,.08), 0 14px 32px rgba(46,38,24,.13);
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --maxw:640px;
+}
+html[data-theme="catacomb"]{
+  --bg:#14110d; --bg2:#0e0c09; --surface:#1f1a14; --surface2:#282118;
+  --ink:#f2ebdd; --ink2:#b7ab97; --ink3:#8a7f6c;
+  --line:#352c21;
+  --gold:#dda94f; --gold2:#c08f34; --goldsoft:#3a2f1c;
+  --green:#6cbb79; --green2:#8ed09a; --greensoft:#1e3222;
+  --warm:#e08a60; --warmsoft:#3a241b;
+  --violet:#b394d8; --violetsoft:#2b2136; --flame:#f0904a;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
+  --shadow-lift:0 2px 4px rgba(0,0,0,.45), 0 14px 32px rgba(0,0,0,.5);
+}
+html[data-theme="manuscript"]{
+  --bg:#f2ecf7; --bg2:#e6dcf1; --surface:#fffdfb; --surface2:#f6f0fa;
+  --line:#ddd2ea; --gold:#7a5ba6; --gold2:#63478a; --goldsoft:#ece2f7;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--sans);
+  font-size:16px; line-height:1.45; overscroll-behavior-y:none;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+input{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0;line-height:1.2}
+
+/* ---------------------------------------------------------------- layout */
+#app{min-height:100%;display:flex;flex-direction:column;align-items:center}
+.wrap{width:100%;max-width:var(--maxw);padding:0 16px;margin:0 auto}
+#screen{width:100%;flex:1;padding-bottom:32px}
+.screen{animation:fade .22s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------------------------------------------------------------- topbar */
+#topbar{position:sticky;top:0;z-index:30;width:100%;
+  background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
+#topbar .wrap{display:flex;align-items:center;gap:10px;height:56px}
+.tb-face{width:34px;height:34px;border-radius:50%;background:var(--goldsoft);
+  display:grid;place-items:center;font-size:19px;flex:none}
+.tb-name{font-weight:650;font-size:15px;margin-right:auto;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;
+  padding:5px 10px;border-radius:999px;background:var(--surface);
+  border:1px solid var(--line);white-space:nowrap}
+.chip.flame{color:var(--flame)} .chip.xp{color:var(--gold2)}
+
+/* ---------------------------------------------------------------- cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:18px;margin:14px 0}
+.card.tight{padding:14px}
+.sec-title{font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink3);margin:26px 0 8px}
+
+/* ---------------------------------------------------------------- buttons */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  min-height:54px;padding:14px 18px;border-radius:16px;font-weight:750;font-size:16px;
+  background:var(--surface);border:1px solid var(--line);box-shadow:0 3px 0 var(--line);
+  transition:transform .08s,box-shadow .08s,background .15s}
+.btn:active{transform:translateY(3px);box-shadow:none}
+.btn.primary{background:var(--gold);color:#fff;border-color:var(--gold2);
+  box-shadow:0 3px 0 var(--gold2)}
+.btn.primary:active{box-shadow:none}
+.btn.go{background:var(--green);color:#fff;border-color:var(--green2);
+  box-shadow:0 3px 0 var(--green2)}
+.btn.go:active{box-shadow:none}
+.btn.ghost{background:transparent;box-shadow:none;border-color:transparent;
+  color:var(--ink2);min-height:44px;font-weight:650}
+.btn:disabled{opacity:.45;pointer-events:none}
+.btn-row{display:flex;gap:10px}
+.btn-row .btn{width:auto;flex:1}
+
+/* ---------------------------------------------------------------- profiles */
+.brandmark{text-align:center;padding:44px 0 8px}
+.brandmark .glyph{font-size:52px;line-height:1}
+.brandmark h1{font-size:32px;margin-top:10px;letter-spacing:-.01em}
+.brandmark p{color:var(--ink2);font-size:14px;margin:8px 0 0}
+.plist{display:flex;flex-direction:column;gap:10px}
+.prow{display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+  text-align:left;width:100%}
+.prow:active{transform:scale(.985)}
+.prow .face{width:48px;height:48px;border-radius:50%;background:var(--goldsoft);
+  display:grid;place-items:center;font-size:26px;flex:none}
+.prow .nm{font-weight:700;font-size:17px}
+.prow .sub{font-size:13px;color:var(--ink2);margin-top:1px}
+.prow .del{margin-left:auto;color:var(--ink3);font-size:20px;padding:8px}
+.avatar-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0}
+.avatar-grid button{aspect-ratio:1;border-radius:12px;background:var(--surface2);
+  font-size:24px;display:grid;place-items:center;border:2px solid transparent}
+.avatar-grid button[aria-pressed="true"]{border-color:var(--gold);background:var(--goldsoft)}
+.field{width:100%;padding:14px 16px;border-radius:14px;border:2px solid var(--line);
+  background:var(--surface);font-size:17px;outline:none}
+.field:focus{border-color:var(--gold)}
+
+/* ---------------------------------------------------------------- map */
+.hero{background:linear-gradient(160deg,var(--goldsoft),var(--surface));
+  border:1px solid var(--line);border-radius:22px;padding:18px;margin:16px 0;
+  box-shadow:var(--shadow)}
+.hero-top{display:flex;align-items:center;gap:14px}
+.hero .lvl{font-family:var(--serif);font-size:26px;font-weight:700}
+.hero .ttl{font-size:13px;color:var(--ink2);font-weight:650}
+.bar{height:12px;border-radius:999px;background:var(--bg2);overflow:hidden;margin-top:12px;
+  border:1px solid var(--line)}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));
+  border-radius:999px;transition:width .7s cubic-bezier(.2,.8,.25,1)}
+.hero .barlab{display:flex;justify-content:space-between;font-size:12px;
+  color:var(--ink2);margin-top:6px;font-weight:600}
+
+.modegrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.modecard{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px;text-align:left;box-shadow:var(--shadow);display:flex;flex-direction:column;
+  min-height:132px;transition:transform .1s}
+.modecard:active{transform:scale(.98)}
+.modecard .ic{font-size:28px}
+.modecard h3{font-size:17px;margin-top:8px}
+.modecard p{font-size:12.5px;color:var(--ink2);margin:5px 0 0;line-height:1.35}
+.modecard.accent{background:linear-gradient(165deg,var(--greensoft),var(--surface))}
+.modecard.accent2{background:linear-gradient(165deg,var(--violetsoft),var(--surface))}
+
+.quest{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.quest:last-child{border-bottom:0}
+.quest .qic{width:36px;height:36px;border-radius:10px;background:var(--surface2);
+  display:grid;place-items:center;font-size:18px;flex:none}
+.quest .qmain{flex:1;min-width:0}
+.quest .qlab{font-size:14px;font-weight:650}
+.quest .qbar{height:7px;border-radius:999px;background:var(--bg2);margin-top:6px;overflow:hidden}
+.quest .qbar>i{display:block;height:100%;background:var(--green);border-radius:999px;
+  transition:width .5s ease}
+.quest .qrew{font-size:12px;font-weight:750;color:var(--gold2);flex:none}
+.quest.done .qlab{color:var(--ink3);text-decoration:line-through}
+.quest.done .qrew{color:var(--green)}
+
+.path{position:relative;padding:6px 0 20px}
+.path::before{content:"";position:absolute;left:31px;top:14px;bottom:26px;width:3px;
+  background:repeating-linear-gradient(var(--line) 0 7px,transparent 7px 14px)}
+.node{display:flex;align-items:center;gap:14px;padding:8px 0;position:relative;width:100%;
+  text-align:left}
+.node .ring{width:64px;height:64px;flex:none;position:relative;display:grid;place-items:center}
+.node .ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.node .ring .num{font-family:var(--serif);font-size:20px;font-weight:700}
+.node .ring .core{width:48px;height:48px;border-radius:50%;background:var(--surface);
+  border:1px solid var(--line);display:grid;place-items:center;z-index:1}
+.node.done .core{background:var(--green);color:#fff;border-color:var(--green2)}
+.node.locked{opacity:.5}
+.node .meta{flex:1;min-width:0}
+.node .cname{font-weight:700;font-size:15px}
+.node .csub{font-size:12.5px;color:var(--ink2);margin-top:2px}
+.node .tag{font-size:11px;font-weight:750;padding:2px 8px;border-radius:999px;
+  background:var(--surface2);color:var(--ink2);display:inline-block;margin-top:5px}
+.node .tag.need{background:var(--warmsoft);color:var(--warm)}
+.node.now .core{border-color:var(--gold);border-width:2px;
+  animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(193,135,58,.4)}50%{box-shadow:0 0 0 9px rgba(193,135,58,0)}}
+
+.trouble{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:13.5px;
+  border-bottom:1px solid var(--line)}
+.trouble:last-of-type{border-bottom:0}
+.trouble .tq{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--ink2)}
+.trouble .tb{font-size:11px;font-weight:800;color:var(--warm);flex:none}
+
+/* ---------------------------------------------------------------- setup */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chipbtn{padding:10px 14px;border-radius:999px;border:2px solid var(--line);
+  background:var(--surface);font-weight:650;font-size:14px}
+.chipbtn[aria-pressed="true"]{border-color:var(--gold);background:var(--goldsoft);color:var(--gold2)}
+.chipbtn:disabled{opacity:.4}
+.optrow{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid var(--line);
+  border-radius:14px;background:var(--surface);margin-bottom:8px;width:100%;text-align:left}
+.optrow[aria-pressed="true"]{border-color:var(--gold);background:var(--goldsoft)}
+.optrow .oic{font-size:22px}
+.optrow .om{flex:1}
+.optrow .ot{font-weight:700;font-size:15px}
+.optrow .os{font-size:12.5px;color:var(--ink2)}
+
+/* ---------------------------------------------------------------- round */
+#roundtop{position:sticky;top:0;z-index:20;background:var(--bg);padding:10px 0 8px}
+#roundtop .row{display:flex;align-items:center;gap:12px}
+.xbtn{font-size:22px;color:var(--ink3);padding:4px 8px;flex:none}
+.pbar{flex:1;height:14px;border-radius:999px;background:var(--bg2);overflow:hidden;
+  border:1px solid var(--line)}
+.pbar>i{display:block;height:100%;border-radius:999px;
+  background:linear-gradient(90deg,var(--green),var(--green2));
+  transition:width .45s cubic-bezier(.2,.8,.25,1)}
+.timer{font-variant-numeric:tabular-nums;font-weight:800;font-size:14px;color:var(--violet);flex:none}
+
+.qhead{display:flex;gap:8px;align-items:center;margin:18px 0 10px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  padding:4px 9px;border-radius:999px;background:var(--surface2);color:var(--ink2)}
+.badge.b-bonus{background:var(--goldsoft);color:var(--gold2)}
+.badge.b-speed{background:var(--violetsoft);color:var(--violet)}
+.badge.b-recog{background:var(--greensoft);color:var(--green2)}
+.qtext{font-family:var(--serif);font-size:23px;line-height:1.34;margin:4px 0 20px}
+.qtext .blank{color:var(--gold2);font-weight:700;letter-spacing:.5px}
+
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{width:100%;text-align:left;padding:16px;border-radius:14px;border:2px solid var(--line);
+  background:var(--surface);font-weight:600;font-size:16px;box-shadow:0 3px 0 var(--line);
+  transition:transform .08s,box-shadow .08s}
+.opt:active{transform:translateY(3px);box-shadow:none}
+.opt[aria-pressed="true"]{border-color:var(--gold);background:var(--goldsoft)}
+.opt.right{border-color:var(--green);background:var(--greensoft);box-shadow:0 3px 0 var(--green)}
+.opt.wrongpick{border-color:var(--warm);background:var(--warmsoft);box-shadow:0 3px 0 var(--warm)}
+.fills{display:flex;flex-direction:column;gap:10px}
+.fills .fl{display:flex;align-items:center;gap:10px}
+.fills .fn{font-size:12px;font-weight:800;color:var(--ink3);width:16px;flex:none}
+.shake{animation:shake .34s}
+@keyframes shake{10%,90%{transform:translateX(-2px)}30%,70%{transform:translateX(4px)}
+  50%{transform:translateX(-4px)}}
+
+/* ------------------------------------------------------------- verdict */
+#verdict{position:fixed;left:0;right:0;bottom:0;z-index:40;
+  background:var(--surface);border-top:1px solid var(--line);
+  border-radius:22px 22px 0 0;box-shadow:var(--shadow-lift);
+  transform:translateY(110%);transition:transform .3s cubic-bezier(.2,.9,.3,1);
+  padding-bottom:env(safe-area-inset-bottom)}
+#verdict.up{transform:none}
+#verdict.ok{background:var(--greensoft)}
+#verdict.no{background:var(--warmsoft)}
+#verdict .wrap{padding-top:16px;padding-bottom:16px}
+.vhead{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:21px;
+  font-weight:700}
+#verdict.ok .vhead{color:var(--green2)} #verdict.no .vhead{color:var(--warm)}
+.vans{margin-top:9px;font-size:15px;line-height:1.5}
+.vans b{font-weight:750}
+.vnote{margin-top:8px;font-size:13.5px;color:var(--ink2);line-height:1.45;
+  padding-left:11px;border-left:3px solid var(--line)}
+.vmiss{margin-top:8px;font-size:13.5px;color:var(--ink2)}
+.vsrc{margin-top:8px;font-size:11.5px;color:var(--ink3);font-weight:650}
+.vacts{display:flex;gap:10px;margin-top:14px;align-items:center}
+.vacts .btn{flex:1}
+.override{font-size:12.5px;font-weight:750;color:var(--ink2);padding:10px 12px;
+  border:1px dashed var(--line);border-radius:12px;background:transparent;flex:none}
+
+/* ---------------------------------------------------- review card (mid) */
+#rvz{margin-top:18px}
+.reviewcard{border-radius:18px;padding:18px 18px 14px;border:1px solid var(--line);
+  animation:pop .25s cubic-bezier(.2,.9,.3,1)}
+.reviewcard.ok{background:var(--greensoft)} .reviewcard.no{background:var(--warmsoft)}
+.reviewcard .vhead{font-size:19px}
+.vxp{margin-left:auto;font-size:14px;font-family:var(--sans);opacity:.8;font-weight:700}
+.vanslabel{margin-top:13px;font-size:11.5px;font-weight:800;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink3)}
+.vansbig{font-family:var(--serif);font-size:clamp(22px,5.5vw,30px);line-height:1.28;
+  font-weight:750;margin-top:5px;color:var(--ink)}
+.ovrlink{display:inline-block;margin-top:13px;background:none;border:none;cursor:pointer;
+  font-size:12.5px;font-weight:750;color:var(--ink3);text-decoration:underline;
+  text-underline-offset:3px;padding:4px 0}
+@keyframes pop{from{transform:scale(.97);opacity:0}to{transform:none;opacity:1}}
+
+/* ------------------------------------------------------------- modal */
+#modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;
+  justify-content:center;background:rgba(24,17,8,.45);padding:20px}
+#modal.on{display:flex}
+.mbox{background:var(--surface);border-radius:20px;max-width:440px;width:100%;
+  padding:22px;box-shadow:var(--shadow-lift);max-height:82vh;overflow:auto}
+.mbox h3{font-family:var(--serif);font-size:21px;line-height:1.25;margin-bottom:6px}
+.mbox .btn{margin-top:10px}
+.klabel{font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--gold2);margin-bottom:6px}
+.klist{margin:12px 0 4px;padding-left:20px}
+.klist li{font-size:14.5px;line-height:1.5;margin-bottom:9px;color:var(--ink2)}
+.tag.keys{cursor:pointer;background:var(--goldsoft);color:var(--gold2)}
+
+/* ------------------------------------------------------------- results */
+.scorebig{text-align:center;padding:20px 0 6px}
+.scorebig .pct{font-family:var(--serif);font-size:64px;font-weight:700;line-height:1}
+.scorebig .pts{color:var(--ink2);font-size:15px;margin-top:6px;font-weight:600}
+.scorebig .cmp{font-size:13px;color:var(--ink3);margin-top:8px}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  padding:12px 8px;text-align:center}
+.stat .n{font-family:var(--serif);font-size:24px;font-weight:700}
+.stat .l{font-size:11px;color:var(--ink2);font-weight:650;margin-top:2px}
+.revrow{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
+.revrow:last-child{border-bottom:0}
+.revrow .mk{flex:none;font-size:15px}
+.revrow .rq{color:var(--ink2)} .revrow .ra{font-weight:700;margin-top:2px}
+
+/* ------------------------------------------------------------- match */
+.matchgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.mtile{padding:14px 12px;border-radius:14px;border:2px solid var(--line);background:var(--surface);
+  font-size:13.5px;font-weight:600;text-align:left;min-height:66px;box-shadow:0 3px 0 var(--line);
+  line-height:1.3}
+.mtile[aria-pressed="true"]{border-color:var(--gold);background:var(--goldsoft)}
+.mtile.gone{opacity:0;pointer-events:none;transform:scale(.9);transition:all .3s}
+.mtile.bad{border-color:var(--warm);background:var(--warmsoft)}
+
+/* ------------------------------------------------------------- celebrate */
+#celebrate{position:fixed;inset:0;z-index:60;display:none;place-items:center;
+  background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(3px);text-align:center}
+#celebrate.on{display:grid}
+#celebrate .glyph{font-size:76px;animation:pop .55s cubic-bezier(.2,1.5,.4,1)}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+#celebrate h2{font-size:30px;margin:14px 0 6px}
+#celebrate p{color:var(--ink2);margin:0 0 24px;font-size:15px;padding:0 32px}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:59;overflow:hidden}
+.confetti i{position:absolute;width:9px;height:14px;border-radius:2px;
+  animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(108vh) rotate(720deg);opacity:.15}}
+
+#toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,140%);z-index:70;
+  background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:999px;
+  font-size:14px;font-weight:700;transition:transform .3s cubic-bezier(.2,.9,.3,1);
+  box-shadow:var(--shadow-lift);max-width:88vw;text-align:center}
+#toast.up{transform:translate(-50%,0)}
+
+/* ------------------------------------------------------------- admin */
+.adm{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px}
+.adm textarea{width:100%;min-height:150px;padding:12px;border-radius:12px;
+  border:2px solid var(--line);background:var(--surface);font-family:inherit;font-size:12px;
+  outline:none;resize:vertical}
+.adm label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--ink3);margin:12px 0 5px}
+.adm .field{font-size:14px;padding:11px 13px}
+.adm .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.adm select{width:100%;padding:11px 13px;border-radius:14px;border:2px solid var(--line);
+  background:var(--surface);font-size:14px}
+.adm .cbrow{display:flex;gap:18px;margin-top:12px;font-size:14px;font-family:var(--sans)}
+.adm .cbrow label{display:flex;align-items:center;gap:7px;margin:0;font-size:14px;
+  text-transform:none;letter-spacing:0;color:var(--ink);font-weight:600}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th,.tbl td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+.tbl th{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink3)}
+.ok{color:var(--green2);font-weight:700} .no{color:var(--warm);font-weight:700}
+.muted{color:var(--ink2);font-size:13.5px}
+.center{text-align:center}
+.sp{height:10px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar" hidden><div class="wrap">
+    <div class="tb-face" id="tbFace">🕊️</div>
+    <div class="tb-name" id="tbName">—</div>
+    <div class="chip flame" id="tbStreak">🔥 0</div>
+    <div class="chip xp" id="tbXp">⭐ 0</div>
+  </div></div>
+  <main id="screen"></main>
+</div>
+<div id="verdict"><div class="wrap" id="verdictBody"></div></div>
+<div id="modal"></div>
+<div id="celebrate"></div>
+<div id="toast"></div>
+
+<script>
+/* BANK:START */
+const BANK = {
+  "meta": {"textbook": "Justo L. González, The Story of Christianity Vol. 1 (Revised & Updated)", "types": ["short", "tf", "fill", "define", "mc", "list"], "sources": ["actual", "predicted"]},
+  "questions": [
+    {"id": "q1-01", "quiz": 1, "chapter": 1, "source": "actual", "type": "tf", "question": "T or F: Our context, upbringing, education, and time and place all influence how we see, read and interpret history.", "answer": "True"},
+    {"id": "q1-02", "quiz": 1, "chapter": 1, "source": "actual", "type": "short", "missed": true, "question": "In what event did God intervene in history so that humanity's fellowship with God could be restored?", "answer": "The birth of Christ", "accept": ["the incarnation", "Jesus coming to earth"], "notes": "The teacher's answer is the BIRTH of Christ (the incarnation) — a common trap is to answer the crucifixion."},
+    {"id": "q1-03", "quiz": 1, "chapter": 2, "source": "actual", "type": "short", "question": "What event in the book of Acts gave birth to the church?", "answer": "Pentecost (the coming of the Holy Spirit)", "accept": ["Pentecost", "the Holy Spirit came"]},
+    {"id": "q1-04", "quiz": 1, "chapter": 2, "source": "actual", "type": "fill", "question": "The Gospel was proclaimed first to the ____ and then to the ____.", "answer": "Jews; Gentiles"},
+    {"id": "q1-05", "quiz": 1, "chapter": 2, "source": "actual", "type": "tf", "missed": true, "question": "T or F: The earliest believers or Christians were ethnically Jewish.", "answer": "True", "notes": "True — the earliest church was made up of ethnically Jewish believers."},
+    {"id": "q1-06", "quiz": 1, "chapter": 2, "source": "actual", "type": "tf", "question": "T or F: The first controversy in the Early Church in Jerusalem took place among Jews.", "answer": "True"},
+    {"id": "q1-07", "quiz": 1, "chapter": 1, "source": "actual", "type": "short", "missed": true, "question": "What ancient nation conquered the Northern Kingdom of Israel?", "answer": "Assyria", "notes": "Memory hook: A before B — ASSYRIA took the north first, BABYLON took the south later. (Not Rome!)"},
+    {"id": "q1-08", "quiz": 1, "chapter": 1, "source": "actual", "type": "short", "question": "What ancient nation conquered the Southern Kingdom of Judah?", "answer": "Babylon"},
+    {"id": "q1-09", "quiz": 1, "chapter": 1, "source": "actual", "type": "fill", "question": "After Alexander's death, the Greek empire was divided among ____ generals.", "answer": "four"},
+    {"id": "q1-10", "quiz": 1, "chapter": 1, "source": "actual", "type": "define", "question": "Define Hellenism.", "answer": "The spread and adoption of Greek culture, language, and ideas (including by Jews)", "accept": ["Jews that accepted Greek culture", "Greek culture"], "keywords": ["greek", "culture"]},
+    {"id": "q1-11", "quiz": 1, "chapter": 1, "source": "actual", "type": "short", "question": "What was the name of the Jewish family that resisted the Seleucids and led a period of rebellion?", "answer": "The Maccabees", "accept": ["Macabees", "Maccabeus"]},
+    {"id": "q1-12", "quiz": 1, "chapter": 1, "source": "actual", "type": "tf", "missed": true, "question": "T or F: Civilization actually means 'cityfication.'", "answer": "False", "notes": "False — trick question. 'Civilization' relates to cities, but 'cityfication' is not what it means."},
+    {"id": "q1-13", "quiz": 1, "chapter": 1, "source": "actual", "type": "short", "question": "What city did Herod the Great build in honor of Caesar?", "answer": "Caesarea", "accept": ["Cesarea"]},
+    {"id": "q1-14", "quiz": 1, "chapter": 1, "source": "actual", "type": "short", "question": "In what year did the Romans destroy the temple in Jerusalem?", "answer": "AD 70", "accept": ["70", "70 CE", "70 AD"]},
+    {"id": "q1-15", "quiz": 1, "chapter": 1, "source": "actual", "type": "short", "question": "During the first century, what Jewish religious group was known for its emphasis on the law?", "answer": "Pharisees", "accept": ["Pharises"]},
+    {"id": "q1-16", "quiz": 1, "chapter": 1, "source": "actual", "type": "short", "question": "Which Jewish religious group was primarily made up of people from the aristocratic class?", "answer": "Sadducees", "accept": ["Saducees", "Sadducces"]},
+    {"id": "q1-17", "quiz": 1, "chapter": 1, "source": "actual", "type": "short", "question": "Which Jewish religious group was an ascetic group that produced the Dead Sea Scrolls?", "answer": "Essenes", "accept": ["Esenes"]},
+    {"id": "q1-18", "quiz": 1, "chapter": 1, "source": "actual", "type": "define", "question": "What is ethical monotheism?", "answer": "The belief in one God who requires ethical (moral) behavior from people", "keywords": ["one god", "moral", "behavior"]},
+    {"id": "q1-19", "quiz": 1, "chapter": 1, "source": "actual", "type": "short", "question": "Modern Judaism evolved from which 1st century Jewish religious group?", "answer": "Pharisees"},
+    {"id": "q1-20", "quiz": 1, "chapter": 1, "source": "actual", "type": "short", "question": "What is the name for the Greek translation of the Old Testament?", "answer": "Septuagint", "accept": ["Septugint"]},
+    {"id": "q1-21", "quiz": 1, "chapter": 1, "source": "actual", "type": "short", "question": "What was the name of the Jewish philosopher who sought to show that the best of pagan philosophy agreed with the Hebrew scriptures?", "answer": "Philo"},
+    {"id": "q1-22", "quiz": 1, "chapter": 1, "source": "actual", "type": "define", "question": "What is syncretism?", "answer": "The mixing or blending of multiple religions", "keywords": ["mixing", "religions"]},
+    {"id": "q1-23", "quiz": 1, "chapter": 1, "source": "actual", "type": "short", "question": "In the Roman empire, both Jews and Christians were seen as being unpatriotic and seditious because they refused to worship what or who?", "answer": "The emperor (and the Roman gods)", "accept": ["the emperor", "the emperors", "Caesar"]},
+    {"id": "q1-24", "quiz": 1, "chapter": 2, "source": "actual", "type": "fill", "missed": true, "question": "Paul's letter to Philemon concerned a runaway slave by the name of ____.", "answer": "Onesimus", "notes": "Onesimus — the runaway slave of Philemon. Don't confuse him with Epaphras (Colossae)."},
+    {"id": "q1-b1", "quiz": 1, "chapter": 2, "source": "actual", "type": "define", "bonus": true, "question": "What does 'Christ' mean?", "answer": "Anointed One", "accept": ["Anointed", "Messiah"]},
+    {"id": "q1-b2", "quiz": 1, "chapter": 1, "source": "actual", "type": "define", "bonus": true, "question": "What is apatheia?", "answer": "Life without passion (a Stoic ideal)"},
+    {"id": "q1-b3", "quiz": 1, "chapter": 2, "source": "actual", "type": "short", "bonus": true, "missed": true, "question": "Who began the church in Colossae after coming to faith in Christ in Ephesus?", "answer": "Epaphras", "notes": "Epaphras founded Colossae — Onesimus is the runaway slave. Easy pair to mix up."},
+    {"id": "q2-01", "quiz": 2, "chapter": 3, "source": "actual", "type": "list", "missed": true, "question": "Who were the three 'pillars' of the early church?", "answer": "Peter, James, and John", "notes": "Peter, James, and JOHN — Paul was not one of the three pillars."},
+    {"id": "q2-02", "quiz": 2, "chapter": 3, "source": "actual", "type": "short", "missed": true, "question": "James, the half-brother of Jesus, was the leader of what church community?", "answer": "Jerusalem", "notes": "James led the JERUSALEM church — he stayed home while others went out."},
+    {"id": "q2-03", "quiz": 2, "chapter": 3, "source": "actual", "type": "short", "missed": true, "question": "Followers of Jesus were first called Christians in what city?", "answer": "Antioch", "notes": "ANTIOCH — where the name 'Christian' was first used. (Not Rome, not Jerusalem.)"},
+    {"id": "q2-04", "quiz": 2, "chapter": 3, "source": "actual", "type": "short", "question": "Initially, where did Paul first go when he went to a new town or area?", "answer": "The synagogue", "accept": ["the temple", "the Jewish synagogue"]},
+    {"id": "q2-05", "quiz": 2, "chapter": 3, "source": "actual", "type": "short", "missed": true, "question": "According to church and historical tradition, Peter suffered martyrdom in what city?", "answer": "Rome", "notes": "Both Peter AND Paul died in Rome — the difference is HOW, not where.", "pair": "peter-death"},
+    {"id": "q2-06", "quiz": 2, "chapter": 3, "source": "actual", "type": "short", "missed": true, "question": "How was Peter killed?", "answer": "Crucified upside down", "notes": "Peter = crucified UPSIDE DOWN. Paul = beheaded. Keep this pair straight — it gets swapped a lot.", "pair": "peter-death"},
+    {"id": "q2-07", "quiz": 2, "chapter": 3, "source": "actual", "type": "short", "question": "According to church and historical tradition, Paul suffered martyrdom in what city?", "answer": "Rome", "pair": "paul-death"},
+    {"id": "q2-08", "quiz": 2, "chapter": 3, "source": "actual", "type": "short", "missed": true, "question": "How was Paul killed?", "answer": "Beheaded", "notes": "Paul = BEHEADED (he was a Roman citizen). Peter = crucified upside down.", "pair": "paul-death"},
+    {"id": "q2-09", "quiz": 2, "chapter": 3, "source": "actual", "type": "tf", "question": "T or F: Paul established the church in Rome.", "answer": "False"},
+    {"id": "q2-10", "quiz": 2, "chapter": 3, "source": "actual", "type": "short", "question": "Which Apostle wrote the majority of the epistles in the New Testament?", "answer": "Paul"},
+    {"id": "q2-11", "quiz": 2, "chapter": 3, "source": "actual", "type": "short", "missed": true, "question": "Who eventually became the patron saint of Spain?", "answer": "James", "notes": "James — patron saint of Spain (Santiago = Saint James)."},
+    {"id": "q2-12", "quiz": 2, "chapter": 3, "source": "actual", "type": "short", "missed": true, "question": "According to legend, which apostle traveled to India and founded Christianity there?", "answer": "Thomas", "notes": "THOMAS went to India — hook: 'doubting Thomas went the farthest.'"},
+    {"id": "q2-13", "quiz": 2, "chapter": 3, "source": "actual", "type": "short", "missed": true, "question": "Who carried out most of the early missionary work of the church?", "answer": "Ordinary Christians (not the apostles)", "accept": ["ordinary people", "ordinary believers"], "notes": "Ordinary Christians spread the faith — not the apostles or professional missionaries."},
+    {"id": "q2-14", "quiz": 2, "chapter": 3, "source": "actual", "type": "tf", "question": "True or False: The Gospel was primarily spread by Hellenist Christians.", "answer": "True"},
+    {"id": "q2-15", "quiz": 2, "chapter": 3, "source": "actual", "type": "short", "missed": true, "question": "Who led the Ethiopian eunuch to salvation?", "answer": "Philip", "notes": "PHILIP and the Ethiopian eunuch (Acts 8) — not Paul."},
+    {"id": "q2-16", "quiz": 2, "chapter": 3, "source": "actual", "type": "short", "missed": true, "question": "What did Jews call Gentiles who believed in YHWH God and practiced the ethical beliefs and customs of the Jews?", "answer": "God-fearers", "notes": "God-fearers — Gentiles who worshiped YHWH without fully converting. (Not Hellenists.)"},
+    {"id": "q2-17", "quiz": 2, "chapter": 4, "source": "actual", "type": "short", "question": "The first large, major persecution of Christians in Rome broke out under which emperor?", "answer": "Nero"},
+    {"id": "q2-18", "quiz": 2, "chapter": 4, "source": "actual", "type": "tf", "question": "T or F: Initially, both within Judaism and in the Roman Empire at large, Christianity was not seen as a new religious faith but simply as another group or sect within Judaism.", "answer": "True"},
+    {"id": "q2-19", "quiz": 2, "chapter": 4, "source": "actual", "type": "short", "question": "Who did Nero blame the great fire of Rome on?", "answer": "The Christians"},
+    {"id": "q2-20", "quiz": 2, "chapter": 4, "source": "actual", "type": "short", "question": "The persecution under Nero was primarily limited to what city?", "answer": "Rome"},
+    {"id": "q2-b1", "quiz": 2, "chapter": 3, "source": "actual", "type": "short", "bonus": true, "missed": true, "question": "Which city did the leaders of the Christian community move to after persecution began?", "answer": "Pella", "notes": "PELLA — the city across the Jordan the Jerusalem Christians fled to. (Not Ephesus.)"},
+    {"id": "q2-b2", "quiz": 2, "chapter": 3, "source": "actual", "type": "fill", "bonus": true, "missed": true, "question": "The church in Alexandria said that the apostle ____ founded the church there.", "answer": "Mark", "notes": "MARK founded the church in Alexandria, by that church's own tradition."},
+    {"id": "q2-b3", "quiz": 2, "chapter": 2, "source": "actual", "type": "list", "bonus": true, "question": "In Early Church gatherings, what were the two main parts of Christian worship?", "answer": "The Word (scripture/teaching) and Communion (breaking of bread)", "accept": ["the word and communion", "breaking bread and the word"]},
+    {"id": "q3-01", "quiz": 3, "chapter": 5, "source": "actual", "type": "short", "question": "Who did Nero blame the great fire of Rome on?", "answer": "The Christians", "notes": "Recycled from Quiz 2."},
+    {"id": "q3-02", "quiz": 3, "chapter": 5, "source": "actual", "type": "short", "question": "The persecution under Nero was primarily limited to what city?", "answer": "Rome", "notes": "Recycled from Quiz 2."},
+    {"id": "q3-03", "quiz": 3, "chapter": 5, "source": "actual", "type": "short", "question": "Why were Christians declared to be atheists?", "answer": "They refused to worship the Roman gods and had no visible god or idols", "accept": ["they did not have a visible God", "they would not worship the gods"], "keywords": ["worship", "gods", "visible"]},
+    {"id": "q3-04", "quiz": 3, "chapter": 5, "source": "actual", "type": "fill", "missed": true, "question": "Under the rule of Domitian the New Testament book of ____ was likely written.", "answer": "Revelation", "notes": "Domitian → REVELATION. Hook: exiled John wrote Revelation on Patmos under Domitian."},
+    {"id": "q3-05", "quiz": 3, "chapter": 5, "source": "actual", "type": "short", "question": "Flavius Clemens and his wife Flavia Domitilla were killed in what city?", "answer": "Rome"},
+    {"id": "q3-06", "quiz": 3, "chapter": 5, "source": "actual", "type": "fill", "missed": true, "question": "Christians were accused of 'hatred towards ____.'", "answer": "humankind", "accept": ["humanity", "the human race", "mankind"], "notes": "The book's exact phrase: 'hatred toward HUMANKIND.'"},
+    {"id": "q3-07", "quiz": 3, "chapter": 5, "source": "actual", "type": "list", "question": "What were the 3 things that the Christians had to do in order to escape death when brought before the courts?", "answer": "Worship the gods (and the emperor's image), burn incense, and curse Christ"},
+    {"id": "q3-08", "quiz": 3, "chapter": 6, "source": "actual", "type": "tf", "question": "T or F: The early church believed that you chose to be a martyr.", "answer": "False"},
+    {"id": "q3-09", "quiz": 3, "chapter": 6, "source": "actual", "type": "short", "missed": true, "question": "Who became emperor in A.D. 161? He was also known as an enlightened emperor who wrote a famous work, the Meditations.", "answer": "Marcus Aurelius", "notes": "MARCUS AURELIUS — the enlightened Stoic emperor who still persecuted. Write the full name."},
+    {"id": "q3-10", "quiz": 3, "chapter": 6, "source": "actual", "type": "fill", "question": "Ignatius was bishop of ____.", "answer": "Antioch"},
+    {"id": "q3-11", "quiz": 3, "chapter": 6, "source": "actual", "type": "fill", "missed": true, "question": "Pliny wrote to emperor ____ to get answers on what to do with the Christians.", "answer": "Trajan", "notes": "Pliny wrote to TRAJAN. Hook: 'Pliny's TRAIN of questions went to TRAJAN.' (Cyrus was centuries earlier — Persia.)"},
+    {"id": "q3-12", "quiz": 3, "chapter": 6, "source": "actual", "type": "short", "question": "What did Justin consider to be the true philosophy?", "answer": "Christ (Christianity)", "accept": ["Christ", "Christianity", "the Christian faith"]},
+    {"id": "q3-13", "quiz": 3, "chapter": 6, "source": "actual", "type": "short", "question": "What was the policy towards Christians from the Roman point of view?", "answer": "Do not seek Christians out, but if they are accused and brought in, punish them unless they recant", "keywords": ["seek", "accused", "punish", "recant"], "page": "50-51"},
+    {"id": "q3-14", "quiz": 3, "chapter": 6, "source": "actual", "type": "tf", "missed": true, "question": "T or F: Christians were constantly persecuted in the 2nd century.", "answer": "False", "notes": "FALSE — persecution in the 2nd century was sporadic and local, not constant. Classic trap."},
+    {"id": "q3-15", "quiz": 3, "chapter": 6, "source": "actual", "type": "mc", "question": "How was Polycarp killed?", "options": ["A. by wild beasts", "B. by fire", "C. by starvation", "D. by stoning"], "answer": "B. by fire", "page": "54"},
+    {"id": "q3-16", "quiz": 3, "chapter": 5, "source": "actual", "type": "fill", "question": "Many times the Christians were accused of bringing the ____ of the gods upon the Empire.", "answer": "wrath", "accept": ["anger"]},
+    {"id": "q3-17", "quiz": 3, "chapter": 6, "source": "actual", "type": "short", "missed": true, "question": "Sanctus kept saying what words over and over while he was being killed?", "answer": "I am a Christian", "notes": "Sanctus repeated only: 'I am a Christian.'", "page": "56-57"},
+    {"id": "q3-b1", "quiz": 3, "chapter": 5, "source": "actual", "type": "short", "bonus": true, "question": "What was done with the name of Domitian after he was killed?", "answer": "It was erased from all the records (damnatio memoriae)", "keywords": ["erased", "records"]},
+    {"id": "q3-b2", "quiz": 3, "chapter": 6, "source": "actual", "type": "short", "bonus": true, "question": "How many sons did Felicitas have?", "answer": "Seven", "accept": ["7"]},
+    {"id": "q3-b3", "quiz": 3, "chapter": 6, "source": "actual", "type": "short", "bonus": true, "missed": true, "question": "How old was Polycarp when he was martyred?", "answer": "86", "notes": "Exactly 86 — from Polycarp's own words: 'Eighty-six years I have served him.'", "page": "54"},
+    {"id": "q3-b4", "quiz": 3, "chapter": 7, "source": "actual", "type": "define", "bonus": true, "question": "Define apologetics.", "answer": "The defense of the faith (against pagan accusations and criticism)", "keywords": ["defense", "faith"], "page": "59"},
+    {"id": "p7-01", "chapter": 7, "source": "predicted", "type": "short", "question": "What do we call the Christian writers who wrote to defend the faith against pagan accusations?", "answer": "Apologists", "page": "59"},
+    {"id": "p7-02", "chapter": 7, "source": "predicted", "type": "short", "question": "Because Christians spoke of eating the body and blood of Christ, pagans accused them of what?", "answer": "Cannibalism", "page": "60", "predictedHit": true},
+    {"id": "p7-03", "chapter": 7, "source": "predicted", "type": "short", "question": "Because Christians called each other 'brother' and 'sister' and held 'love feasts,' pagans accused them of what?", "answer": "Incest (sexual immorality)", "page": "59-60"},
+    {"id": "p7-04", "chapter": 7, "source": "predicted", "type": "tf", "question": "T or F: Christianity was mocked for being a religion of the uneducated, women, and slaves.", "answer": "True", "page": "60"},
+    {"id": "p7-05", "chapter": 7, "source": "predicted", "type": "short", "question": "What pagan philosopher wrote The True Word, the most serious intellectual attack on Christianity in the second century?", "answer": "Celsus", "page": "60"},
+    {"id": "p7-06", "chapter": 7, "source": "predicted", "type": "short", "question": "Which Christian teacher later answered Celsus in the book Against Celsus?", "answer": "Origen", "page": "62"},
+    {"id": "p7-07", "chapter": 7, "source": "predicted", "type": "short", "question": "Celsus claimed Jesus was the illegitimate son of Mary and what kind of man?", "answer": "A Roman soldier", "accept": ["a soldier"], "page": "61-62", "bonus": true},
+    {"id": "p7-08", "chapter": 7, "source": "predicted", "type": "short", "question": "Who is considered the most important apologist of the second century?", "answer": "Justin Martyr", "page": "62"},
+    {"id": "p7-09", "chapter": 7, "source": "predicted", "type": "fill", "question": "Justin said the philosophers who lived before Christ could share in the truth because of the 'seeds of the ____.'", "answer": "Logos (Word)", "accept": ["Word", "Logos"], "page": "65-66", "predictedHit": true},
+    {"id": "p7-10", "chapter": 7, "source": "predicted", "type": "short", "question": "According to Justin, which Greek philosopher was a 'Christian before Christ'?", "answer": "Socrates", "accept": ["Plato", "Socrates and Plato"], "page": "66"},
+    {"id": "p7-11", "chapter": 7, "source": "predicted", "type": "short", "question": "What was the name of Justin's disciple who wrote Address to the Greeks?", "answer": "Tatian", "page": "62-64"},
+    {"id": "p7-12", "chapter": 7, "source": "predicted", "type": "short", "question": "Which apologist asked, 'What has Athens to do with Jerusalem?'", "answer": "Tertullian", "page": "63", "predictedHit": true},
+    {"id": "p7-13", "chapter": 7, "source": "predicted", "type": "short", "question": "Was Tertullian's attitude toward pagan philosophy positive or negative?", "answer": "Negative", "page": "63"},
+    {"id": "p7-14", "chapter": 7, "source": "predicted", "type": "short", "question": "Most apologies were written in Greek. Name one of the two apologists who wrote in Latin.", "answer": "Minucius Felix (Octavius) or Tertullian (Apology)", "accept": ["Tertullian", "Minucius Felix"], "page": "63"},
+    {"id": "p7-15", "chapter": 7, "source": "predicted", "type": "short", "question": "Justin wrote a famous Dialogue with a Jewish rabbi named what?", "answer": "Trypho", "page": "62"},
+    {"id": "p7-16", "chapter": 7, "source": "predicted", "type": "tf", "question": "T or F: The apologists argued that Christians were actually loyal subjects because they prayed for the emperor.", "answer": "True", "page": "67"},
+    {"id": "p7-17", "chapter": 7, "source": "predicted", "type": "short", "question": "The apologists argued that Plato's ideas were borrowed from which Old Testament figure?", "answer": "Moses", "page": "64"},
+    {"id": "p7-18", "chapter": 7, "source": "predicted", "type": "fill", "question": "The Letter to Diognetus says Christians 'live on earth, but are citizens of ____.'", "answer": "heaven", "page": "67-68"},
+    {"id": "p7-19", "chapter": 7, "source": "predicted", "type": "short", "question": "Aristides mocked idols made of gold because they had to be protected from what?", "answer": "Thieves", "accept": ["robbers", "being stolen"], "page": "66", "bonus": true},
+    {"id": "p7-20", "chapter": 7, "source": "predicted", "type": "short", "question": "In what city did Justin die as a martyr?", "answer": "Rome", "page": "56"},
+    {"id": "p6-01", "chapter": 6, "source": "predicted", "type": "short", "question": "What was Ignatius's nickname, meaning 'bearer of God'?", "answer": "The bearer of God", "accept": ["Theophorus", "God-bearer", "bearer of God"], "page": "51"},
+    {"id": "p6-02", "chapter": 6, "source": "predicted", "type": "short", "question": "How many letters did Ignatius write on his way to martyrdom?", "answer": "Seven", "page": "51"},
+    {"id": "p6-03", "chapter": 6, "source": "predicted", "type": "short", "question": "In his letter to the Romans, what did Ignatius ask the Christians there NOT to do?", "answer": "Try to prevent his martyrdom", "page": "52-53"},
+    {"id": "p6-04", "chapter": 6, "source": "predicted", "type": "short", "question": "In what city did Ignatius meet his martyrdom?", "answer": "Rome", "accept": ["in Rome"], "page": "51-53", "pair": "ignatius"},
+    {"id": "p6-05", "chapter": 6, "source": "predicted", "type": "short", "question": "Polycarp was the bishop of what city?", "answer": "Smyrna", "page": "53-54"},
+    {"id": "p6-06", "chapter": 6, "source": "predicted", "type": "fill", "question": "Polycarp's famous reply: '____ years I have served him, and he has done me no evil.'", "answer": "Eighty-six", "accept": ["86"], "page": "54"},
+    {"id": "p6-07", "chapter": 6, "source": "predicted", "type": "short", "question": "Rather than volunteer for martyrdom, what did Polycarp first do when the authorities came looking for him?", "answer": "He hid", "accept": ["fled", "went into hiding", "he hid himself"], "page": "54", "notes": "Martyrdom was not to be sought — it was given by God. Polycarp hid twice before accepting arrest as God's will."},
+    {"id": "p6-08", "chapter": 6, "source": "predicted", "type": "short", "question": "Under Marcus Aurelius, persecution came 'like a bolt of lightning' to which two cities in Gaul?", "answer": "Lyons and Vienne", "accept": ["Lyons", "Lyon and Vienne"], "page": "56"},
+    {"id": "p6-09", "chapter": 6, "source": "predicted", "type": "tf", "question": "T or F: Marcus Aurelius was a cruel and incompetent emperor.", "answer": "False", "page": "55", "notes": "The book calls him 'one of the most enlightened minds of his age' — yet he still persecuted. Good emperors persecuted too."},
+    {"id": "p6-10", "chapter": 6, "source": "predicted", "type": "fill", "question": "Pliny reported that Christians met before dawn and sang hymns to Christ 'as to a ____.'", "answer": "god", "page": "50"},
+    {"id": "p6-11", "chapter": 6, "source": "predicted", "type": "short", "page": "50-51", "question": "What did Trajan say should be done with anonymous accusations against Christians?", "answer": "They should be disregarded (ignored)", "accept": ["ignored", "thrown out", "disregarded"], "notes": "Trajan called them 'unworthy of this age.'"},
+    {"id": "p6-12", "chapter": 6, "source": "predicted", "type": "short", "page": "54-55", "question": "Quintus volunteered himself for martyrdom at Smyrna. What happened to him?", "answer": "He weakened at the last moment and abandoned the faith", "keywords": ["weakened", "abandoned"], "notes": "This is why the church taught martyrdom is given by God, not chosen — ties to the T/F the teacher already asked."},
+    {"id": "p6-13", "chapter": 6, "source": "predicted", "type": "short", "bonus": true, "page": "50", "question": "Pliny tortured two Christian women who held what role in the church?", "answer": "Ministers (female ministers / deaconesses)", "accept": ["ministrae", "deaconesses", "ministers"]},
+    {"id": "p8-01", "chapter": 8, "source": "predicted", "type": "list", "page": "69-70", "question": "What three instruments did the church develop to defend the true faith against heresy?", "answer": "Creeds, the canon of scripture, and apostolic succession"},
+    {"id": "p8-02", "chapter": 8, "source": "predicted", "type": "define", "page": "70", "question": "The word Gnosticism comes from the Greek word gnosis. What does gnosis mean?", "answer": "Knowledge (secret, mystical knowledge)", "accept": ["knowledge"], "predictedHit": true},
+    {"id": "p8-03", "chapter": 8, "source": "predicted", "type": "tf", "page": "70-71", "question": "T or F: The Gnostics taught that all matter is evil and the goal is for the spirit to escape the body.", "answer": "True", "predictedHit": true},
+    {"id": "p8-04", "chapter": 8, "source": "predicted", "type": "short", "page": "71-72", "question": "What did a Gnostic spirit need in order to break through the heavenly spheres — like a spiritual password?", "answer": "The secret knowledge (gnosis)", "accept": ["gnosis", "the secret knowledge", "a password"], "predictedHit": true},
+    {"id": "p8-05", "chapter": 8, "source": "predicted", "type": "define", "page": "72", "question": "Define Docetism.", "answer": "The teaching that Jesus only SEEMED to have a human body (from the Greek 'to seem')", "keywords": ["seemed", "body"], "notes": "From a Greek word meaning 'to seem' — his body appeared human but was not.", "predictedHit": true},
+    {"id": "p8-06", "chapter": 8, "source": "predicted", "type": "short", "page": "70", "question": "In 1945, a large collection of Gnostic writings was discovered in what place in Egypt?", "answer": "Nag Hammadi", "accept": ["Nag Hammadi, Egypt"], "bonus": true, "predictedHit": true},
+    {"id": "p8-07", "chapter": 8, "source": "predicted", "type": "short", "page": "73", "question": "Marcion's father was the bishop of what city on the Black Sea?", "answer": "Sinope", "bonus": true},
+    {"id": "p8-08", "chapter": 8, "source": "predicted", "type": "fill", "page": "74", "question": "According to Marcion, Yahweh was an arbitrary god of ____, while the Father of Jesus was a God of ____.", "answer": "justice; love"},
+    {"id": "p8-09", "chapter": 8, "source": "predicted", "type": "tf", "page": "74", "question": "T or F: Marcion taught that Jesus was born of Mary.", "answer": "False", "notes": "Marcion said Jesus 'simply appeared as a grown man' during the reign of Tiberius — birth would have tied him to Yahweh's material world."},
+    {"id": "p8-10", "chapter": 8, "source": "predicted", "type": "list", "page": "74", "question": "What two kinds of Christian writings made up Marcion's list of true scriptures?", "answer": "The Epistles of Paul and the Gospel of Luke"},
+    {"id": "p8-11", "chapter": 8, "source": "predicted", "type": "short", "page": "74", "question": "Why was Marcion a greater threat to the church than the Gnostics?", "answer": "He organized a rival church with its own bishops and its own scripture", "keywords": ["rival church", "bishops", "scripture"]},
+    {"id": "p8-12", "chapter": 8, "source": "predicted", "type": "short", "page": "75", "question": "Whose list was the first attempt to put together a 'New Testament'?", "answer": "Marcion's", "accept": ["Marcion"]},
+    {"id": "p8-13", "chapter": 8, "source": "predicted", "type": "list", "page": "76", "question": "By the end of the second century, what was the established core of the New Testament canon?", "answer": "The four Gospels, Acts, and the Pauline Epistles"},
+    {"id": "p8-14", "chapter": 8, "source": "predicted", "type": "short", "page": "76-77", "question": "Which New Testament book was questioned after Constantine because its words about the empire seemed too harsh?", "answer": "Revelation", "notes": "Revelation — the same book Domitian's persecution produced. It comes up more than once."},
+    {"id": "p8-15", "chapter": 8, "source": "predicted", "type": "fill", "page": "77", "question": "In the ancient church, a 'symbol' was not a picture but a means of ____.", "answer": "recognition", "accept": ["recognizing believers"]},
+    {"id": "p8-16", "chapter": 8, "source": "predicted", "type": "short", "page": "78-79", "question": "The old Roman creed that scholars call 'R' was the basis for what famous creed?", "answer": "The Apostles' Creed"},
+    {"id": "p8-17", "chapter": 8, "source": "predicted", "type": "short", "page": "78", "question": "Why is Pontius Pilate named in the creed?", "answer": "To date the event — insisting it was a historical, datable event", "keywords": ["date", "historical"], "notes": "Not to blame Pilate — to pin the crucifixion to real history."},
+    {"id": "p8-18", "chapter": 8, "source": "predicted", "type": "define", "page": "81", "question": "What does the word 'catholic' mean?", "answer": "Universal — also 'according to the whole'", "accept": ["universal"], "bonus": true},
+    {"id": "p8-19", "chapter": 8, "source": "predicted", "type": "short", "page": "80", "question": "According to apostolic succession, the apostles passed their teaching on to whom?", "answer": "The bishops", "accept": ["their successors the bishops"]},
+    {"id": "p8-20", "chapter": 8, "source": "predicted", "type": "short", "page": "76", "question": "The Protoevangelium of James tells of Mary's parents. What were their names?", "answer": "Anna and Joachim", "bonus": true},
+    {"id": "p9-01", "chapter": 9, "source": "predicted", "type": "list", "page": "83", "question": "Name the four great teachers of the church covered in this chapter.", "answer": "Irenaeus, Clement of Alexandria, Tertullian, and Origen"},
+    {"id": "p9-02", "chapter": 9, "source": "predicted", "type": "short", "page": "83", "question": "Ignatius, Clement of Rome, and the other early writers who each addressed one specific issue are known by what joint title?", "answer": "The apostolic fathers"},
+    {"id": "p9-03", "chapter": 9, "source": "predicted", "type": "short", "page": "83", "question": "What early manual of discipline is also called the Teaching of the Twelve Apostles?", "answer": "The Didache"},
+    {"id": "p9-04", "chapter": 9, "source": "predicted", "type": "fill", "page": "86", "question": "For Irenaeus, Jesus is the '____ Adam' who corrected what was twisted by sin.", "answer": "second"},
+    {"id": "p9-05", "chapter": 9, "source": "predicted", "type": "short", "page": "86-87", "question": "Clement taught in what Egyptian city, famous for its Museum and great library?", "answer": "Alexandria"},
+    {"id": "p9-06", "chapter": 9, "source": "predicted", "type": "short", "page": "87", "question": "Clement said philosophy was given to the Greeks just as what was given to the Jews?", "answer": "The Law"},
+    {"id": "p9-07", "chapter": 9, "source": "predicted", "type": "tf", "page": "87-88", "question": "T or F: Clement taught that scripture is written allegorically, 'in parables.'", "answer": "True"},
+    {"id": "p9-08", "chapter": 9, "source": "predicted", "type": "short", "page": "88", "question": "Tertullian came from what North African city?", "answer": "Carthage"},
+    {"id": "p9-09", "chapter": 9, "source": "predicted", "type": "short", "page": "89", "question": "In what treatise did Tertullian argue, like a lawyer, that heretics have no right to use the Bible at all?", "answer": "Prescription Against the Heretics", "accept": ["the Prescription"], "keywords": ["prescription", "heretics"]},
+    {"id": "p9-10", "chapter": 9, "source": "predicted", "type": "short", "page": "91", "question": "Around the year 207, Tertullian shocked the church by joining what movement?", "answer": "Montanism", "accept": ["the Montanists"]},
+    {"id": "p9-11", "chapter": 9, "source": "predicted", "type": "short", "page": "91", "question": "Montanus claimed that he was possessed by what?", "answer": "The Holy Spirit"},
+    {"id": "p9-12", "chapter": 9, "source": "predicted", "type": "short", "page": "91", "question": "Name one of the two women who prophesied alongside Montanus.", "answer": "Priscilla or Maximilla", "accept": ["Priscilla", "Maximilla"], "bonus": true},
+    {"id": "p9-13", "chapter": 9, "source": "predicted", "type": "fill", "page": "92-93", "question": "Tertullian coined the trinitarian formula: 'one ____ and three ____.'", "answer": "substance; persons"},
+    {"id": "p9-14", "chapter": 9, "source": "predicted", "type": "short", "page": "93", "question": "Tertullian was the first Christian theologian to write in what language?", "answer": "Latin", "notes": "That is why he is called the founder of Western theology."},
+    {"id": "p9-15", "chapter": 9, "source": "predicted", "type": "short", "page": "93", "question": "How did Origen's mother stop him from running off to be martyred as a teenager?", "answer": "She hid his clothes", "bonus": true},
+    {"id": "p9-16", "chapter": 9, "source": "predicted", "type": "short", "page": "93-94", "question": "What was the name of Origen's six-column edition of the Old Testament?", "answer": "The Hexapla"},
+    {"id": "p9-17", "chapter": 9, "source": "predicted", "type": "tf", "page": "95", "question": "T or F: Origen speculated that in the end even Satan will be saved.", "answer": "True"},
+    {"id": "p9-18", "chapter": 9, "source": "predicted", "type": "short", "page": "93", "question": "After being tortured in the persecution of Decius, Origen died in what city?", "answer": "Tyre"},
+    {"id": "p9-19", "chapter": 9, "source": "predicted", "type": "define", "page": "93", "question": "Define catechumens.", "answer": "Candidates for baptism (those being trained/prepared for baptism)", "keywords": ["candidates", "baptism"]},
+    {"id": "p9-20", "chapter": 9, "source": "predicted", "type": "short", "page": "94-95", "question": "According to Origen, why do human souls now live in material bodies?", "answer": "They are fallen preexistent spirits who sinned in a prior, purely spiritual existence", "keywords": ["fallen", "preexistent", "sinned"]},
+    {"id": "p10-01", "chapter": 10, "source": "predicted", "type": "short", "page": "97", "question": "Septimius Severus tried to unite the empire under the worship of what?", "answer": "Sol invictus — the 'Unconquered Sun'", "accept": ["the Unconquered Sun", "Sol invictus", "the sun"]},
+    {"id": "p10-02", "chapter": 10, "source": "predicted", "type": "short", "page": "98", "question": "In the year 202, what did Septimius Severus outlaw under penalty of death?", "answer": "All conversions to Christianity or Judaism", "keywords": ["conversions", "christianity", "judaism"]},
+    {"id": "p10-03", "chapter": 10, "source": "predicted", "type": "short", "page": "98", "question": "What famous pair of women were martyred in Carthage around the year 203?", "answer": "Perpetua and Felicitas", "pair": "perpetua"},
+    {"id": "p10-04", "chapter": 10, "source": "predicted", "type": "short", "page": "98", "question": "When Perpetua's father begged her to abandon her faith, she said one thing about herself could not be changed. What?", "answer": "Her name — the name of Christian", "keywords": ["name", "christian"]},
+    {"id": "p10-05", "chapter": 10, "source": "predicted", "type": "short", "page": "98-99", "question": "Felicitas was pregnant when arrested. What happened before the games?", "answer": "She gave birth in her eighth month — to a girl, adopted by another Christian woman", "keywords": ["gave birth", "eighth month"], "bonus": true},
+    {"id": "p10-06", "chapter": 10, "source": "predicted", "type": "short", "page": "99", "question": "After being attacked by a crazed cow, how did Perpetua and Felicitas finally die?", "answer": "By the sword", "pair": "perpetua", "notes": "They bid each other farewell with the kiss of peace first."},
+    {"id": "p10-07", "chapter": 10, "source": "predicted", "type": "tf", "page": "99", "question": "T or F: Emperor Alexander Severus kept images of Christ and Abraham on his private altar.", "answer": "True", "bonus": true},
+    {"id": "p10-08", "chapter": 10, "source": "predicted", "type": "short", "page": "100", "question": "In 249, which emperor launched a systematic, empire-wide persecution to restore Rome's ancient glory?", "answer": "Decius"},
+    {"id": "p10-09", "chapter": 10, "source": "predicted", "type": "short", "page": "101", "question": "Decius's purpose was not to create martyrs, but to create what?", "answer": "Apostates", "accept": ["people who abandoned the faith"]},
+    {"id": "p10-10", "chapter": 10, "source": "predicted", "type": "fill", "page": "101", "question": "Tertullian had declared that the blood of the martyrs was a ____.", "answer": "seed"},
+    {"id": "p10-11", "chapter": 10, "source": "predicted", "type": "define", "page": "101", "question": "What was a libellum?", "answer": "A certificate attesting that you had offered sacrifice to the gods", "keywords": ["certificate", "sacrifice"]},
+    {"id": "p10-12", "chapter": 10, "source": "predicted", "type": "short", "page": "102", "question": "What new title of honor was given to Christians who stood firm and suffered but were NOT killed?", "answer": "Confessor", "accept": ["confessors"]},
+    {"id": "p10-13", "chapter": 10, "source": "predicted", "type": "short", "page": "102", "question": "Which great teacher of the church was imprisoned and tortured under Decius?", "answer": "Origen"},
+    {"id": "p10-14", "chapter": 10, "source": "predicted", "type": "short", "page": "102", "question": "Valerian's persecution ended when he was captured by whom?", "answer": "The Persians", "bonus": true},
+    {"id": "p10-15", "chapter": 10, "source": "predicted", "type": "short", "page": "102", "question": "After the persecution, what did the church call those who had weakened and given in?", "answer": "The lapsed"},
+    {"id": "p10-16", "chapter": 10, "source": "predicted", "type": "short", "page": "103", "question": "Who was the bishop of Carthage who called a synod to decide what to do with the lapsed?", "answer": "Cyprian"},
+    {"id": "p10-17", "chapter": 10, "source": "predicted", "type": "fill", "page": "104", "question": "Cyprian: 'Outside the ____ there is no salvation.'", "answer": "church"},
+    {"id": "p10-18", "chapter": 10, "source": "predicted", "type": "short", "page": "103", "question": "Cyprian called which earlier theologian 'the master'?", "answer": "Tertullian", "bonus": true},
+    {"id": "p10-19", "chapter": 10, "source": "predicted", "type": "tf", "page": "103", "question": "T or F: Cyprian fled during the persecution, was accused of cowardice, and later proved his courage by dying as a martyr.", "answer": "True"},
+    {"id": "p10-20", "chapter": 10, "source": "predicted", "type": "define", "page": "103", "question": "Define synod.", "answer": "A gathering of the bishops of a region", "keywords": ["gathering", "bishops"]},
+    {"id": "p11-01", "chapter": 11, "source": "predicted", "type": "short", "page": "107", "question": "On what day of the week did the early church gather to break bread, and why that day?", "answer": "The first day of the week (Sunday) — the day of the resurrection of the Lord", "keywords": ["first day", "resurrection"]},
+    {"id": "p11-02", "chapter": 11, "source": "predicted", "type": "short", "page": "108", "question": "What was the central act of early Christian worship?", "answer": "Communion (the Eucharist, the Lord's Supper)", "accept": ["communion", "the Eucharist", "the Lord's Supper", "breaking of bread"]},
+    {"id": "p11-03", "chapter": 11, "source": "predicted", "type": "tf", "page": "108", "question": "T or F: The tone of early communion services was sorrow and repentance.", "answer": "False", "notes": "Joy and gratitude — they were celebrations of the resurrection, focused on Easter rather than Good Friday."},
+    {"id": "p11-04", "chapter": 11, "source": "predicted", "type": "list", "page": "109", "question": "Which two early witnesses give us our best outside descriptions of Christian worship?", "answer": "Pliny and Justin Martyr"},
+    {"id": "p11-05", "chapter": 11, "source": "predicted", "type": "short", "page": "109", "question": "After the service, who carried communion to those who could not be present?", "answer": "The deacons"},
+    {"id": "p11-06", "chapter": 11, "source": "predicted", "type": "short", "page": "109", "question": "The communion part of the service opened with what gesture?", "answer": "The kiss of peace"},
+    {"id": "p11-07", "chapter": 11, "source": "predicted", "type": "short", "page": "110", "question": "The church could not legally own property, so Christians organized as what kind of societies in order to own the catacombs?", "answer": "Funeral societies", "keywords": ["funeral", "societies"]},
+    {"id": "p11-08", "chapter": 11, "source": "predicted", "type": "tf", "page": "110", "question": "T or F: The catacombs were secret hiding places unknown to the Roman authorities.", "answer": "False", "notes": "They were well-known cemeteries; Christians gathered there to commune with the martyrs buried there, not to hide."},
+    {"id": "p11-09", "chapter": 11, "source": "predicted", "type": "short", "page": "110-111", "question": "A saint's day celebrates not the saint's birthday, but the day of their what?", "answer": "Martyrdom (death)", "accept": ["death", "martyrdom"]},
+    {"id": "p11-10", "chapter": 11, "source": "predicted", "type": "short", "page": "111", "question": "The oldest Christian church building, built before 256, was found in the excavations of what city?", "answer": "Dura-Europos"},
+    {"id": "p11-11", "chapter": 11, "source": "predicted", "type": "define", "page": "111", "question": "What was the fragmentum?", "answer": "A piece of bread from the bishop's communion service sent to the other churches of the city as a symbol of unity", "keywords": ["bread", "bishop", "unity"]},
+    {"id": "p11-12", "chapter": 11, "source": "predicted", "type": "fill", "page": "111", "question": "In the weekly calendar, every Sunday was a sort of ____, and every Friday a day of penance and ____.", "answer": "Easter; fasting"},
+    {"id": "p11-13", "chapter": 11, "source": "predicted", "type": "short", "page": "113", "question": "On what one day of the year was baptism usually administered?", "answer": "Easter Sunday (very early in the morning)", "accept": ["Easter"]},
+    {"id": "p11-14", "chapter": 11, "source": "predicted", "type": "short", "page": "113", "question": "The newly baptized were given milk and honey as a sign of what?", "answer": "The Promised Land into which they were now entering", "keywords": ["promised land"]},
+    {"id": "p11-15", "chapter": 11, "source": "predicted", "type": "short", "page": "113", "question": "The Didache prefers that baptism be done in what kind of water?", "answer": "'Living' — that is, running — water", "accept": ["living water", "running water"], "bonus": true},
+    {"id": "p11-16", "chapter": 11, "source": "predicted", "type": "short", "page": "112", "question": "By the beginning of the third century, how long did the catechumenate (preparation for baptism) last?", "answer": "Up to three years", "accept": ["three years", "3 years"]},
+    {"id": "p11-17", "chapter": 11, "source": "predicted", "type": "short", "page": "114", "question": "Name a woman in the New Testament who held a position of leadership, and her role.", "answer": "Phoebe (a female deacon), Junia (counted among the apostles), or Philip's four daughters (prophesied/preached)", "accept": ["Phoebe", "Junia", "Philip's daughters"]},
+    {"id": "p11-18", "chapter": 11, "source": "predicted", "type": "short", "page": "115-116", "question": "What did the word 'martyr' originally mean?", "answer": "Witness"},
+    {"id": "p11-19", "chapter": 11, "source": "predicted", "type": "short", "page": "116", "question": "Gregory Thaumaturgus's name means what?", "answer": "Wonderworker", "bonus": true},
+    {"id": "p11-20", "chapter": 11, "source": "predicted", "type": "short", "page": "117", "question": "The Greek word for fish, ICHTHYS, was used as an acrostic for what phrase?", "answer": "Jesus Christ, Son of God, Savior", "keywords": ["jesus christ", "son of god", "savior"]},
+    {"id": "p11-21", "chapter": 11, "source": "predicted", "type": "define", "page": "116-117", "question": "What did the word paganus originally mean?", "answer": "An uncouth, rural person — the old religion survived in the countryside, so it was dubbed 'paganism'", "keywords": ["rural", "countryside"], "bonus": true},
+    {"id": "p12-01", "chapter": 12, "source": "predicted", "type": "short", "page": "119", "question": "In Diocletian's four-emperor system, what was a senior emperor called?", "answer": "Augustus", "accept": ["an augustus", "augusti"]},
+    {"id": "p12-02", "chapter": 12, "source": "predicted", "type": "short", "page": "119", "question": "What was a junior emperor called under Diocletian?", "answer": "Caesar", "accept": ["a caesar"]},
+    {"id": "p12-03", "chapter": 12, "source": "predicted", "type": "tf", "page": "119", "question": "T or F: Diocletian's own wife Prisca and daughter Valeria were Christians.", "answer": "True", "bonus": true},
+    {"id": "p12-04", "chapter": 12, "source": "predicted", "type": "short", "page": "120-121", "question": "Which caesar was the driving force behind the Great Persecution?", "answer": "Galerius"},
+    {"id": "p12-05", "chapter": 12, "source": "predicted", "type": "short", "page": "120", "question": "Where did the first difficulties for Christians arise under Diocletian?", "answer": "In the army (the legions)", "accept": ["the army", "the legions", "the military"]},
+    {"id": "p12-06", "chapter": 12, "source": "predicted", "type": "list", "page": "121", "question": "The edict of 303 ordered that all Christian ____ and ____ be destroyed.", "answer": "Buildings and books", "accept": ["churches and books", "buildings and writings"]},
+    {"id": "p12-07", "chapter": 12, "source": "predicted", "type": "short", "page": "121", "question": "After fire broke out twice in the imperial palace, whom did Galerius blame?", "answer": "The Christians", "notes": "Some Christian writers said Galerius set the fires himself in order to blame them."},
+    {"id": "p12-08", "chapter": 12, "source": "predicted", "type": "short", "page": "121", "question": "Constantine's father, who ruled the one region with a slight respite from persecution, was named what?", "answer": "Constantius Chlorus", "accept": ["Constantius"]},
+    {"id": "p12-09", "chapter": 12, "source": "predicted", "type": "short", "page": "123", "question": "When Galerius begged Diocletian to come out of retirement, Diocletian said he was quite happy doing what?", "answer": "Growing cabbages", "bonus": true},
+    {"id": "p12-10", "chapter": 12, "source": "predicted", "type": "short", "page": "123", "question": "Maximinus Daia had Christians maimed and sent to work where — where they promptly organized new churches?", "answer": "The stone quarries", "accept": ["the quarries", "the mines"]},
+    {"id": "p12-11", "chapter": 12, "source": "predicted", "type": "short", "page": "124", "question": "On April 30, 311, which dying emperor issued the edict of toleration that ended the persecution?", "answer": "Galerius"},
+    {"id": "p12-12", "chapter": 12, "source": "predicted", "type": "short", "page": "124", "question": "How soon after issuing his edict of toleration did Galerius die?", "answer": "Five days later", "accept": ["5 days"], "bonus": true},
+    {"id": "p12-13", "chapter": 12, "source": "predicted", "type": "short", "page": "126", "question": "At what battle in 312 did Constantine defeat Maxentius?", "answer": "The battle of the Milvian Bridge", "accept": ["Milvian Bridge"], "pair": "milvian"},
+    {"id": "p12-14", "chapter": 12, "source": "predicted", "type": "short", "page": "126", "question": "How did Maxentius die?", "answer": "He drowned (at the Milvian Bridge)", "accept": ["drowned"], "pair": "milvian"},
+    {"id": "p12-15", "chapter": 12, "source": "predicted", "type": "short", "page": "125", "question": "Lactantius says Constantine's sign came in a dream. According to Eusebius, how did it appear?", "answer": "As a vision in the sky, with the words 'In this you shall conquer'", "keywords": ["sky", "conquer"]},
+    {"id": "p12-16", "chapter": 12, "source": "predicted", "type": "short", "page": "125-126", "question": "What symbol did Constantine order placed on his soldiers' shields and his standard?", "answer": "The Chi-Rho — the first two Greek letters of the name of Christ", "accept": ["Chi-Rho", "the chi rho", "XP"], "keywords": ["chi", "rho"]},
+    {"id": "p12-17", "chapter": 12, "source": "predicted", "type": "define", "page": "125", "question": "What was the labarum?", "answer": "Constantine's military standard, which bore the Christian Chi-Rho symbol", "keywords": ["standard", "symbol"]},
+    {"id": "p12-18", "chapter": 12, "source": "predicted", "type": "short", "page": "126", "question": "In 313, Constantine and Licinius agreed to stop the persecution in the agreement known as what?", "answer": "The Edict of Milan"},
+    {"id": "p12-19", "chapter": 12, "source": "predicted", "type": "tf", "page": "126", "question": "T or F: The Edict of Milan was technically not an edict, and it was not signed in Milan.", "answer": "True", "bonus": true},
+    {"id": "p12-20", "chapter": 12, "source": "predicted", "type": "short", "page": "126-127", "question": "In what year did Constantine defeat Licinius and become sole emperor?", "answer": "324", "accept": ["AD 324", "324 AD"]},
+    {"id": "q4-01", "quiz": 4, "chapter": 7, "source": "actual", "type": "define", "question": "Define apologetics.", "answer": "The defense of the faith (of Christianity)", "accept": ["the defense of Christianity", "defending the faith"], "keywords": ["defense"], "notes": "Recycled from Quiz 3's bonus — this teacher re-asks definitions.", "page": "59"},
+    {"id": "q4-02", "quiz": 4, "chapter": 7, "source": "actual", "type": "short", "question": "What were some of the rumors about Christian communion in 1st and 2nd century Rome?", "answer": "That Christians ate children (cannibalism)", "accept": ["cannibalism", "they ate kids", "eating babies"], "keywords": ["ate", "children"], "page": "60"},
+    {"id": "q4-03", "quiz": 4, "chapter": 7, "source": "actual", "type": "short", "question": "Name several reasons why Romans looked down upon Christians.", "answer": "They did not worship the Roman gods, and they did not worship the emperor", "keywords": ["worship", "gods", "emperor"], "page": "59-63"},
+    {"id": "q4-04", "quiz": 4, "chapter": 7, "source": "actual", "type": "short", "missed": true, "question": "The Romans considered what essential or primary Christian belief to be complete 'nonsense'?", "answer": "The resurrection", "notes": "Celsus called the final resurrection 'the high point of Christian nonsense.' Not communion — the RESURRECTION.", "page": "62"},
+    {"id": "q4-05", "quiz": 4, "chapter": 7, "source": "actual", "type": "list", "missed": true, "question": "What two approaches did Christian philosophers and theologians have to pagan culture?", "answer": "Complete opposition, and finding common points", "accept": ["opposition and common ground", "reject it or build bridges"], "notes": "Tertullian = complete opposition ('What does Athens have to do with Jerusalem?'); Justin = common points (the Logos).", "page": "63-64"},
+    {"id": "q4-06", "quiz": 4, "chapter": 7, "source": "actual", "type": "short", "missed": true, "question": "Who said, 'What does Athens have to do with Jerusalem?'", "answer": "Tertullian", "notes": "Not Justin! Justin BUILT bridges to philosophy; Tertullian burned them. Opposite men, opposite mottos.", "page": "63"},
+    {"id": "q4-07", "quiz": 4, "chapter": 7, "source": "actual", "type": "fill", "missed": true, "question": "According to Tatian, anything the Greeks or Romans had of value they actually stole from the ____.", "answer": "barbarians", "notes": "Astronomy from Babylonians, geometry from Egyptians, writing from Phoenicians — all 'barbarians' to the Greeks.", "page": "64"},
+    {"id": "q4-08", "quiz": 4, "chapter": 7, "source": "actual", "type": "short", "question": "What is the underlying reason behind the universe?", "answer": "The Logos (God's Word and reason)", "accept": ["the Logos", "the Word", "God"], "page": "65-66"},
+    {"id": "q4-09", "quiz": 4, "chapter": 8, "source": "actual", "type": "define", "missed": true, "question": "What does gnosis mean?", "answer": "Knowledge", "notes": "gnosis = KNOWLEDGE. Logos = word & reason. Two Greek words, two chapters — don't swap them.", "page": "70"},
+    {"id": "q4-10", "quiz": 4, "chapter": 8, "source": "actual", "type": "fill", "question": "Gnostics believe that they have received special or secret ____.", "answer": "knowledge", "accept": ["insight", "gnosis"], "page": "70"},
+    {"id": "q4-11", "quiz": 4, "chapter": 8, "source": "actual", "type": "fill", "question": "Gnostics believe that the ____ world is evil.", "answer": "material", "accept": ["matter", "physical"], "page": "70-71"},
+    {"id": "q4-12", "quiz": 4, "chapter": 8, "source": "actual", "type": "short", "missed": true, "question": "Yes or No: Were gnostic groups for or open to everyone, from every background?", "answer": "No", "accept": ["no"], "notes": "Gnostic gnosis was SECRET — 'clubs, confined and restricted to intellectuals.' The opposite of the open church.", "page": "73"},
+    {"id": "q4-13", "quiz": 4, "chapter": 8, "source": "actual", "type": "tf", "missed": true, "question": "T or F: Gnostics believed that Jesus lived and died as part man and part God, that He was God in the flesh, the incarnate Son of God.", "answer": "False", "notes": "They denied real flesh entirely — Docetism: his body only SEEMED human. No incarnation, no real death.", "page": "72"},
+    {"id": "q4-14", "quiz": 4, "chapter": 8, "source": "actual", "type": "tf", "question": "T or F: Jesus had secret knowledge that he communicated to His disciples only, or to a particular disciple.", "answer": "False", "page": "80"},
+    {"id": "q4-15", "quiz": 4, "chapter": 8, "source": "actual", "type": "short", "missed": true, "question": "Why was Docetism considered a heresy?", "answer": "It taught that Jesus only seemed to have a body", "keywords": ["seemed", "body"], "notes": "From the Greek 'to seem.' If Jesus only seemed human, there was no real incarnation, death, or resurrection.", "page": "72"},
+    {"id": "q4-16", "quiz": 4, "chapter": 8, "source": "actual", "type": "fill", "missed": true, "question": "Gnostics were either ascetics or extreme ____.", "answer": "libertines", "accept": ["libertarians"], "notes": "Body-punishers or body-indulgers — both flow from 'the body doesn't matter.'", "page": "72-73"},
+    {"id": "q4-17", "quiz": 4, "chapter": 8, "source": "actual", "type": "fill", "missed": true, "question": "As a gender, ____ enjoyed greater freedom, liberty, and more authoritative/leadership roles in Gnostic groups.", "answer": "women", "notes": "If only spirit matters, the body's shape doesn't — so Gnostic circles gave women prominence society denied them.", "page": "73"},
+    {"id": "q4-b1", "quiz": 4, "chapter": 7, "source": "actual", "type": "short", "bonus": true, "missed": true, "question": "What is the true light that enlightens everyone according to John's Gospel?", "answer": "The Logos", "accept": ["the Word"], "notes": "'The true light that enlightens' everyone = the Logos — the same Word made flesh in Jesus.", "page": "66"},
+    {"id": "q4-b2", "quiz": 4, "chapter": 8, "source": "actual", "type": "short", "bonus": true, "missed": true, "question": "Give an example of a Gnostic text or gospel.", "answer": "The Gospel of Thomas", "accept": ["Gospel of Truth", "Gospel of Judas"], "page": "70"},
+    {"id": "q4-b3", "quiz": 4, "chapter": 8, "source": "actual", "type": "short", "bonus": true, "missed": true, "question": "Where were many of the lost gnostic writings discovered, and when?", "answer": "Nag Hammadi, Egypt — in 1945 (the 1940s)", "keywords": ["nag hammadi", "1945"], "accept": ["Nag Hammadi in the 1940s"], "page": "70"},
+    {"id": "p9-21", "chapter": 9, "source": "predicted", "type": "fill", "page": "83", "question": "The Shepherd of Hermas deals mostly with the forgiveness of sins after ____.", "answer": "baptism"},
+    {"id": "p9-22", "chapter": 9, "source": "predicted", "type": "fill", "page": "91", "question": "The Montanists claimed a still newer age was beginning in the outpouring of the ____.", "answer": "Spirit", "accept": ["Holy Spirit"], "notes": "Just as Christ opened a new age, Montanus claimed the Spirit was opening a newer one — THAT claim, not the prophesying, is what the church rejected."},
+    {"id": "p9-23", "chapter": 9, "source": "predicted", "type": "short", "page": "91", "question": "Yes or No: Did the church oppose the Montanists because they prophesied?", "answer": "No", "accept": ["no"], "notes": "Women prophesying was not new. The problem was claiming a NEW AGE beyond Christ, which diminished the New Testament."},
+    {"id": "p10-21", "chapter": 10, "source": "predicted", "type": "fill", "page": "97", "question": "Trajan's old principle was still in force: Christians were to be punished if accused, but not to be sought ____.", "answer": "out", "notes": "The same policy question has now appeared on two quizzes in different forms — expect it again."},
+    {"id": "p10-22", "chapter": 10, "source": "predicted", "type": "short", "page": "101", "question": "Yes or No: Did Decius's edict order that Christians as such be persecuted?", "answer": "No", "accept": ["no"], "notes": "It ordered EVERYONE to sacrifice to the gods and carry a libellum. Christians were caught by a universal law, not named by it."},
+    {"id": "p11-22", "chapter": 11, "source": "predicted", "type": "tf", "page": "105", "question": "T or F: Most Christians in the first three centuries came from the upper classes of society.", "answer": "False", "notes": "The vast majority came from society's lower ranks — 'not many of you were wise according to worldly standards.'"},
+    {"id": "p11-23", "chapter": 11, "source": "predicted", "type": "fill", "page": "105", "question": "Celsus complained that Christian teaching took place not in schools, but in kitchens, shops, and ____.", "answer": "tanneries", "accept": ["markets"], "notes": "Origen never contradicted him — ordinary people in ordinary places is exactly how the faith spread."},
+    {"id": "p11-24", "chapter": 11, "source": "predicted", "type": "short", "page": "109", "question": "Yes or No: Were the unbaptized allowed to stay for the communion part of the service?", "answer": "No", "accept": ["no"], "notes": "They were dismissed with a prayer and blessing after the readings; communion was for the baptized only."},
+    {"id": "p12-21", "chapter": 12, "source": "predicted", "type": "fill", "page": "121", "question": "The edict of 303 aimed not to kill Christians, but to remove them from positions of ____.", "answer": "responsibility", "accept": ["power", "leadership"], "notes": "First came dismissal from office and destruction of buildings and books — sterner measures only later."},
+    {"id": "p12-22", "chapter": 12, "source": "predicted", "type": "short", "page": "121", "question": "Yes or No: Did Constantius Chlorus enforce the great persecution harshly in his territory?", "answer": "No", "accept": ["no"], "notes": "His region had a slight respite — only some church buildings torn down. He was Constantine's father, and Eusebius liked to make him look good."}
+  ]
+};
+/* BANK:END */
+
+/* ==================================================================
+   The Story — a study game for González, The Story of Christianity I
+   Single file, no dependencies. Data lives in quiz-bank.json and is
+   inlined above by build.py.
+   ================================================================== */
+(function(){
+"use strict";
+
+const VERSION = "2.0.0";
+const NS = "bibleGame.v1";
+
+/* ------------------------------------------------------------------ util */
+const $  = (s,r)=> (r||document).querySelector(s);
+const el = (s)=> document.getElementById(s);
+const esc = (s)=> String(s==null?"":s).replace(/[&<>"']/g,c=>(
+  {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clamp = (n,a,b)=> Math.max(a,Math.min(b,n));
+const uid = ()=> Math.random().toString(36).slice(2,9);
+const shuffle = (a)=>{ a=a.slice(); for(let i=a.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const sample = (a,n)=> shuffle(a).slice(0,n);
+const todayKey = ()=>{ const d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const dayNum = (k)=> Math.floor(new Date(k+"T00:00:00").getTime()/864e5);
+function weekKey(){ const d=new Date(); const t=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  t.setDate(t.getDate()+4-(t.getDay()||7));
+  const y0=new Date(t.getFullYear(),0,1);
+  return t.getFullYear()+"-W"+String(Math.ceil(((t-y0)/864e5+1)/7)).padStart(2,"0"); }
+
+/* --------------------------------------------------------------- storage */
+function read(k,fb){ try{ const v=localStorage.getItem(k); return v==null?fb:JSON.parse(v); }
+  catch(e){ return fb; } }
+function write(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }
+  catch(e){ toast("Couldn't save progress on this device"); return false; } }
+
+/* ------------------------------------------------------------ chapter map */
+/* Titles follow Ash's edition (see CLAUDE.md). Chapters beyond the bank's
+   coverage are shown locked rather than silently offering an empty quiz. */
+const CHAPTERS = [
+  {n:1,  t:"The Fullness of Time", k:[
+    "God prepared history for the coming of Christ — the BIRTH of Christ restored fellowship with God",
+    "Assyria conquered the Northern Kingdom; Babylon conquered the Southern Kingdom",
+    "Alexander's empire split among four generals; Greek culture spread (Hellenism); the Maccabees resisted",
+    "Jewish groups: Pharisees (strict law-keepers), Sadducees (upper class), Essenes (ascetics — Dead Sea Scrolls)",
+    "Key terms: ethical monotheism, syncretism, Septuagint, apatheia"]},
+  {n:2,  t:"The Church in Jerusalem", k:[
+    "Pentecost — the coming of the Holy Spirit — gave birth to the church",
+    "The gospel went first to the Jews, then to the Gentiles; the earliest believers were ethnically Jewish",
+    "Worship had two main parts: the Word and Communion",
+    "'Christ' means Anointed One",
+    "Small names count: Onesimus (the runaway slave), Epaphras (founded Colossae)"]},
+  {n:3,  t:"The Mission to the Gentiles", k:[
+    "The three pillars: Peter, James, and John; James led the Jerusalem church",
+    "Believers were first called Christians in Antioch; Paul always went to the synagogue first",
+    "Peter and Paul both died in Rome — Peter crucified upside down, Paul beheaded",
+    "Most missionary work was done by ordinary Christians, not the apostles",
+    "Traditions: Thomas went to India, Mark to Alexandria, Philip and the Ethiopian eunuch, the church fled to Pella"]},
+  {n:4,  t:"First Conflicts with the State", k:[
+    "The first major persecution of Christians broke out under Nero",
+    "Nero blamed the great fire of Rome on the Christians",
+    "His persecution was mostly limited to the city of Rome",
+    "At first, Rome saw Christianity as just another group inside Judaism"]},
+  {n:5,  t:"Nero and Domitian", k:[
+    "Under Domitian the book of REVELATION was written",
+    "Christians were called atheists — no visible gods — and accused of 'hatred toward humankind'",
+    "Christians were blamed for bringing the 'wrath of the gods'",
+    "The 3 things to escape death: worship the gods, burn incense, and curse Christ",
+    "Domitian's name was erased from all the records after his death"]},
+  {n:6,  t:"Persecution in the Second Century", k:[
+    "Pliny wrote to Emperor TRAJAN: don't seek Christians out, but punish them if accused — unless they recant",
+    "Ignatius of Antioch wrote seven letters on his way to martyrdom in Rome",
+    "Polycarp of Smyrna — 'eighty-six years I have served him' — died by fire",
+    "MARCUS AURELIUS, an enlightened emperor, still persecuted; martyrs included Felicitas (7 sons) and Justin",
+    "Christians were NOT constantly persecuted in the 2nd century — it was local and sporadic"]},
+  {n:7,  t:"The Defense of the Faith", k:[
+    "Apologists = defenders of the faith against pagan accusations",
+    "The rumors: cannibalism (from the Lord's Supper) and incest (from 'brother and sister' and love feasts)",
+    "Celsus wrote The True Word attacking Christianity; Origen later answered him",
+    "Justin Martyr: Christianity is 'the true philosophy' — the Logos explains the truth in the philosophers",
+    "Tertullian: 'What does Athens have to do with Jerusalem?' — Tatian attacked everything Greek"]},
+  {n:8,  t:"The Deposit of the Faith", k:[
+    "Gnosticism: matter is evil, salvation is secret knowledge (gnosis); Docetism — Jesus only 'seemed' human",
+    "Marcion rejected the Old Testament — Yahweh a god of justice vs. the Father, a God of love; his list was the first 'New Testament'",
+    "The church's three answers: the canon, the creed, and apostolic succession",
+    "Core canon by the end of the 2nd century: four Gospels, Acts, and Paul's epistles",
+    "The Apostles' Creed grew from the old Roman symbol 'R' (~150); 'catholic' means universal — 'according to the whole'"]},
+  {n:9,  t:"The Teachers of the Church", k:[
+    "The four teachers: Irenaeus, Clement of Alexandria, Tertullian, Origen",
+    "Irenaeus: Jesus is the 'second Adam'; Clement: philosophy was to the Greeks what the Law was to the Jews",
+    "Tertullian: first theologian to write in Latin; coined 'one substance and three persons'; later joined the Montanists",
+    "Origen: the Hexapla (six columns), On First Principles; tortured under Decius, died in Tyre",
+    "Origen's speculations — preexistent souls, even Satan saved — were 'more Platonist than Christian'"]},
+  {n:10, t:"Persecution in the Third Century", k:[
+    "Perpetua and Felicitas — five catechumens martyred at Carthage (~203) under Septimius Severus",
+    "Decius (249): everyone must sacrifice and hold a certificate (libellum) — his goal was apostates, not martyrs",
+    "Tertullian: 'the blood of the martyrs is a seed'",
+    "New title of honor: confessor — suffered for the faith but was not killed",
+    "Afterward, the question of the lapsed; Cyprian's synod; 'outside the church there is no salvation'"]},
+  {n:11, t:"Christian Life", k:[
+    "Worship was on Sunday — the day of the resurrection — and communion was its joyful center",
+    "Two-part service: scripture readings and teaching, then communion (opened with the kiss of peace)",
+    "The catacombs were legal cemeteries owned through funeral societies — not secret hideouts",
+    "Baptism came once a year at Easter, after up to three years as a catechumen; white robes, milk and honey",
+    "'Martyr' originally meant 'witness'; ICHTHYS (fish) = 'Jesus Christ, Son of God, Savior'"]},
+  {n:12, t:"The Great Persecution and the Final Victory", k:[
+    "Diocletian's four-emperor system: two augusti (senior) and two caesars (junior)",
+    "Galerius drove the Great Persecution (303): buildings and books destroyed, then all must sacrifice",
+    "The dying Galerius issued the edict of toleration (April 30, 311) — and died five days later",
+    "Constantine's vision — 'In this you shall conquer' — the Chi-Rho; Maxentius drowned at the Milvian Bridge (312)",
+    "313: the 'Edict of Milan' ended persecution; 324: Constantine became sole emperor"]}
+];
+const chapTitle = (n)=>{ const c=CHAPTERS.find(c=>c.n===n); return c?c.t:("Chapter "+n); };
+
+const LEVELS = [
+  {xp:0,     t:"Catechumen"},   {xp:120,  t:"Hearer"},
+  {xp:300,   t:"Believer"},     {xp:560,  t:"Reader"},
+  {xp:900,   t:"Deacon"},       {xp:1350, t:"Presbyter"},
+  {xp:1900,  t:"Apologist"},    {xp:2600, t:"Confessor"},
+  {xp:3500,  t:"Church Father"}
+];
+function levelFor(xp){ let i=0; for(let k=0;k<LEVELS.length;k++) if(xp>=LEVELS[k].xp) i=k;
+  const cur=LEVELS[i], nxt=LEVELS[i+1]||null;
+  return {level:i+1, title:cur.t, floor:cur.xp, ceil:nxt?nxt.xp:cur.xp, next:nxt}; }
+
+const THEMES = [
+  {id:"parchment",  name:"Parchment",  need:0,    how:"Default"},
+  {id:"catacomb",   name:"Catacomb",   need:900,  how:"Reach the rank of Deacon"},
+  {id:"manuscript", name:"Manuscript", need:1900, how:"Reach the rank of Apologist"}
+];
+
+const BADGES = [
+  {id:"first",    ic:"🌱", name:"First Steps",     desc:"Finish your first round"},
+  {id:"perfect",  ic:"💯", name:"Perfect Quiz",    desc:"Score 100% on a mock quiz"},
+  {id:"comeback", ic:"🔁", name:"Comeback",        desc:"Finally nail a question you'd missed"},
+  {id:"martyr",   ic:"🕯️", name:"Martyr's Memory", desc:"Clear a whole round on chapters 5–6"},
+  {id:"week",     ic:"🔥", name:"Week Strong",     desc:"Keep a 7-day streak"},
+  {id:"scholar",  ic:"📜", name:"Scholar",         desc:"Master an entire chapter"},
+  {id:"speed",    ic:"⚡", name:"Quick Recall",    desc:"Win 10 speed questions"},
+  {id:"matcher",  ic:"🧩", name:"Matchmaker",      desc:"Finish a Match round clean"}
+];
+
+/* ================================================================== BANK */
+function extras(){ return read(NS+".extra",[]); }
+let QUESTIONS = [];
+function rebuild(){
+  const base = (BANK.questions||[]).slice();
+  const add  = extras();
+  const seen = new Set(base.map(q=>q.id));
+  add.forEach(q=>{ if(!seen.has(q.id)){ base.push(q); seen.add(q.id); } });
+  QUESTIONS = base;
+}
+const byId = (id)=> QUESTIONS.find(q=>q.id===id);
+const actualQs    = ()=> QUESTIONS.filter(q=>q.source==="actual");
+const predictedQs = ()=> QUESTIONS.filter(q=>q.source==="predicted");
+const chaptersWith = (src)=>{ const s=new Set();
+  QUESTIONS.forEach(q=>{ if(!src||q.source===src) s.add(q.chapter); });
+  return [...s].filter(Boolean).sort((a,b)=>a-b); };
+const quizNumbers = ()=> [...new Set(actualQs().map(q=>q.quiz).filter(Boolean))].sort((a,b)=>a-b);
+
+/* ================================================================ GRADER */
+const STOP = new Set(("the a an and or of to in on at for with by is are was were be been "+
+  "that this it its as from they them he she his her had has have not but so").split(" "));
+const NUMW = {zero:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,
+  eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,
+  nineteen:19,twenty:20,thirty:30,forty:40,fifty:50,sixty:60,seventy:70,eighty:80,ninety:90,
+  hundred:100,thousand:1000};
+
+function normBase(s){
+  return String(s==null?"":s).toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[\u2018\u2019]/g,"'").replace(/[\u201c\u201d]/g,'"')
+    .replace(/[^a-z0-9;\s'-]/g," ")
+    .replace(/[-']/g," ")
+    .replace(/\b(the|a|an)\b/g," ")
+    .replace(/\s+/g," ").trim();
+}
+function norm(s){
+  let t = normBase(s);
+  // number words -> digits, incl. simple compounds like "eighty six"
+  const w = t.split(" ");
+  for(let i=0;i<w.length;i++){
+    if(NUMW[w[i]]!=null){
+      let v=NUMW[w[i]];
+      if(v>=20 && v<100 && NUMW[w[i+1]]!=null && NUMW[w[i+1]]<10){ v+=NUMW[w[i+1]]; w.splice(i+1,1); }
+      w[i]=String(v);
+    }
+  }
+  t = w.join(" ").replace(/\s+/g," ").trim();
+  return t;
+}
+function lev(a,b){
+  if(a===b) return 0;
+  const m=a.length,n=b.length;
+  if(!m) return n; if(!n) return m;
+  let prev=new Array(n+1), cur=new Array(n+1);
+  for(let j=0;j<=n;j++) prev[j]=j;
+  for(let i=1;i<=m;i++){
+    cur[0]=i;
+    for(let j=1;j<=n;j++){
+      cur[j]=Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    }
+    const t=prev; prev=cur; cur=t;
+  }
+  return prev[n];
+}
+/* Spelling counts loosely (CLAUDE.md) — tolerate ~20% edit distance. */
+function near(a,b){
+  if(!a||!b) return false;
+  if(a===b) return true;
+  const L=Math.max(a.length,b.length);
+  if(L<4) return false;
+  return lev(a,b) <= clamp(Math.floor(L*0.2),1,3);
+}
+const stripParens = (s)=> String(s).replace(/\([^)]*\)/g," ").replace(/\s+/g," ").trim();
+const insideParens = (s)=>{ const m=String(s).match(/\(([^)]*)\)/g)||[];
+  return m.map(x=>x.slice(1,-1).trim()); };
+
+/* Every phrasing we're willing to accept for one expected answer. */
+function variants(ans){
+  const out=new Set(); const raw=String(ans);
+  const push=(v)=>{ const n=norm(v); if(n) out.add(n);
+    const b=normBase(v); if(b&&b!==n) out.add(b); };
+  push(raw); push(stripParens(raw));
+  insideParens(raw).forEach(push);
+  // "Logos (Word)" -> also "logos word"; slashes and " or " are alternates
+  raw.split(/\s+or\s+|\//i).forEach(p=>{ if(p.trim()){ push(p); push(stripParens(p)); } });
+  return [...out];
+}
+function contentWords(s){
+  return norm(stripParens(s)).split(" ").filter(w=>w.length>2 && !STOP.has(w));
+}
+function tokenIn(tok, hay){
+  if(hay.indexOf(tok)>=0) return true;
+  return hay.split(" ").some(w=>near(w,tok));
+}
+function splitItems(s){
+  return stripParens(String(s))
+    .split(/,| and | & |;|\//i).map(x=>x.trim()).filter(Boolean);
+}
+function autoKeywords(ans){
+  const w = contentWords(ans);
+  return w.length>=4 ? w : null;
+}
+
+/* Returns {verdict:"correct"|"partial"|"wrong", got, missed:[], score:0..1} */
+function grade(q, input){
+  const raw = String(input==null?"":input).trim();
+  if(!raw) return {verdict:"wrong", missed:[], score:0};
+  const user = norm(raw);
+
+  if(q.type==="tf" || q.type==="mc"){
+    const a = norm(q.answer);
+    const ok = user===a || near(user,a) ||
+      (q.type==="mc" && norm(stripParens(q.answer)).indexOf(user)>=0 && user.length>2) ||
+      (q.type==="tf" && a.charAt(0)===user.charAt(0) && user.length<=5);
+    return {verdict: ok?"correct":"wrong", missed:[], score:ok?1:0};
+  }
+
+  // multi-part fill: "Jews; Gentiles"
+  if(String(q.answer).indexOf(";")>=0 && q.type!=="list"){
+    const parts = String(q.answer).split(";").map(s=>s.trim());
+    const ins   = raw.split(";").map(s=>s.trim());
+    let hit=0; const miss=[];
+    parts.forEach((p,i)=>{
+      const cands = variants(p).concat((q.accept||[]).flatMap(variants));
+      const u = norm(ins[i]||""), ub = normBase(ins[i]||"");
+      if(u && cands.some(c=>c===u||near(c,u)||(ub!==u&&near(c,ub)))) hit++;
+      else miss.push(p);
+    });
+    const sc = hit/parts.length;
+    return {verdict: sc===1?"correct":(sc>0?"partial":"wrong"), missed:miss, score:sc};
+  }
+
+  // whole-answer match against every accepted phrasing; check both the
+  // number-converted form ("86") and the raw word form ("eighty six")
+  const userB = normBase(raw);
+  const cands = variants(q.answer).concat((q.accept||[]).flatMap(variants));
+  if(cands.some(c=> c===user || near(c,user) || (userB!==user && near(c,userB))))
+    return {verdict:"correct", missed:[], score:1};
+  // student wrote more than needed: "it was pentecost" contains "pentecost"
+  if(cands.some(c=> c.length>3 && (user.indexOf(c)>=0 || c.indexOf(user)>=0) &&
+      Math.abs(c.length-user.length)<=Math.max(12,c.length*0.9)))
+    return {verdict:"correct", missed:[], score:1};
+
+  // list: order-independent, per-item fuzzy (CLAUDE.md requires any order)
+  if(q.type==="list"){
+    const want = splitItems(q.answer);
+    const got  = splitItems(raw);
+    const miss=[]; let hit=0;
+    want.forEach(item=>{
+      const direct = got.some(g=> near(norm(g),norm(item)) || norm(g)===norm(item));
+      const words  = contentWords(item);
+      const kw = words.length ? words.filter(w=>tokenIn(w,user)).length/words.length : 0;
+      if(direct || kw>=0.5) hit++; else miss.push(item);
+    });
+    const sc = want.length? hit/want.length : 0;
+    return {verdict: sc===1?"correct":(sc>0?"partial":"wrong"), missed:miss, score:sc};
+  }
+
+  // long prose: curated keywords, else derived content words, 60% threshold
+  const keys = (q.keywords && q.keywords.length) ? q.keywords : autoKeywords(q.answer);
+  if(keys && keys.length>=3){
+    const miss=[]; let hit=0;
+    keys.forEach(k=>{
+      const toks = norm(k).split(" ").filter(Boolean);
+      const okk = toks.length>1
+        ? toks.filter(t=>tokenIn(t,user)).length/toks.length >= 0.6
+        : tokenIn(toks[0]||"", user);
+      if(okk) hit++; else miss.push(k);
+    });
+    const sc = hit/keys.length;
+    if(sc>=0.6) return {verdict:"correct", missed:miss, score:sc};
+    if(sc>=0.3) return {verdict:"partial", missed:miss, score:sc};
+  }
+  return {verdict:"wrong", missed:[], score:0};
+}
+
+/* ================================================================ PROFILE */
+function profiles(){ return read(NS+".profiles",[]); }
+function saveProfiles(l){ write(NS+".profiles",l); }
+function loadP(id){ return read(NS+".p."+id,null); }
+function saveP(p){ if(p) write(NS+".p."+p.id,p); }
+let P = null;
+
+function newProfile(name,avatar){
+  const p = { id:uid(), name:name, avatar:avatar, created:todayKey(),
+    xp:0, streak:0, best:0, freezes:0, lastPlayed:null, days:[],
+    badges:[], theme:"parchment", compete:false, sound:true, onboarded:false,
+    quests:{date:null,daily:[],week:null,weekly:[]},
+    weekXp:{week:weekKey(),xp:0},
+    q:{}, history:[], speedWins:0 };
+  const l=profiles(); l.push({id:p.id,name:name,avatar:avatar}); saveProfiles(l); saveP(p);
+  return p;
+}
+function rec(id){
+  if(!P.q[id]){
+    const q = byId(id);
+    // Ash's known misses start in box 1 so they're drilled hardest (CLAUDE.md)
+    P.q[id] = {seen:0,right:0,wrong:0,box:(q&&q.missed)?1:0,last:null};
+  }
+  return P.q[id];
+}
+function mastery(chapter){
+  const qs = QUESTIONS.filter(q=>q.chapter===chapter);
+  if(!qs.length) return 0;
+  let s=0; qs.forEach(q=>{ const r=P.q[q.id]; if(r&&r.box>0) s+=(r.box-1)/4; });
+  return s/qs.length;
+}
+function troubleSpots(n){
+  return QUESTIONS
+    .map(q=>({q:q, r:P.q[q.id]}))
+    .filter(x=> x.r && x.r.wrong>0 && x.r.box<=2)
+    .sort((a,b)=> (b.r.wrong-b.r.right)-(a.r.wrong-a.r.right) || a.r.box-b.r.box)
+    .slice(0,n||5);
+}
+
+/* streak, with freezes so one missed day doesn't erase weeks (playbook §5) */
+function touchDay(){
+  const t=todayKey();
+  if(P.lastPlayed===t) return;
+  if(!P.lastPlayed){ P.streak=1; }
+  else{
+    const gap = dayNum(t)-dayNum(P.lastPlayed);
+    if(gap===1) P.streak+=1;
+    else if(gap>1){
+      const missed=gap-1;
+      if(P.freezes>=missed){ P.freezes-=missed;
+        toast("❄️ Streak freeze used — your "+P.streak+"-day streak is safe"); P.streak+=1; }
+      else { P.streak=1; }
+    }
+  }
+  P.lastPlayed=t;
+  P.days=(P.days||[]).concat(t).slice(-90);
+  P.best=Math.max(P.best||0,P.streak);
+  if(P.streak>0 && P.streak%5===0 && P.freezes<2){ P.freezes++; toast("❄️ Earned a streak freeze"); }
+  if(P.streak===3||P.streak===7||P.streak===30)
+    queueCeleb({glyph:"🔥",title:P.streak+"-day streak!",body:"Showing up is most of it. Keep going."});
+  if(P.streak>=7) award("week");
+}
+function addXp(n){
+  const before=levelFor(P.xp); P.xp+=n;
+  if(P.weekXp.week!==weekKey()) P.weekXp={week:weekKey(),xp:0};
+  P.weekXp.xp+=n;
+  const after=levelFor(P.xp);
+  if(after.level>before.level){
+    queueCeleb({glyph:"📜",title:"Level "+after.level,body:"You are now a "+after.title+".",
+      confetti:true});
+    setTimeout(()=>toast("💾 Nice milestone — a backup takes 5 seconds (Settings)"),4000);
+  }
+  THEMES.forEach(t=>{ if(t.need>0 && before.floor<t.need && P.xp>=t.need)
+    toast("🎨 Unlocked the "+t.name+" theme"); });
+}
+function award(id){
+  if(P.badges.indexOf(id)>=0) return;
+  const b=BADGES.find(b=>b.id===id); if(!b) return;
+  P.badges.push(id);
+  queueCeleb({glyph:b.ic,title:b.name,body:b.desc,confetti:true});
+}
+
+/* ================================================================= QUESTS */
+const DAILY_POOL = [
+  {id:"answer15", ic:"✍️", label:"Answer 15 questions",    target:15, reward:30},
+  {id:"round1",   ic:"🎯", label:"Finish one round",        target:1,  reward:20},
+  {id:"trouble3", ic:"🩹", label:"Clear 3 trouble spots",   target:3,  reward:35},
+  {id:"streak10", ic:"🎖️", label:"Get 10 right in a row",   target:10, reward:30}
+];
+const WEEKLY_POOL = [
+  {id:"mock1",    ic:"📋", label:"Take a full mock quiz",       target:1,  reward:80},
+  {id:"answer80", ic:"📚", label:"Answer 80 questions",         target:80, reward:90},
+  {id:"master1",  ic:"🏅", label:"Reach 80% in any chapter",    target:1,  reward:100}
+];
+function refreshQuests(){
+  const t=todayKey(), w=weekKey();
+  if(P.quests.date!==t){
+    P.quests.date=t;
+    P.quests.daily = sample(DAILY_POOL,3).map(q=>Object.assign({},q,{progress:0,done:false}));
+  }
+  if(P.quests.week!==w){
+    P.quests.week=w;
+    P.quests.weekly = sample(WEEKLY_POOL,2).map(q=>Object.assign({},q,{progress:0,done:false}));
+  }
+}
+function bumpQuest(id,by){
+  let hit=false;
+  [].concat(P.quests.daily||[], P.quests.weekly||[]).forEach(q=>{
+    if(q.id!==id||q.done) return;
+    q.progress=Math.min(q.target,q.progress+(by||1));
+    if(q.progress>=q.target){ q.done=true; hit=true; addXp(q.reward);
+      toast("✅ Quest complete: "+q.label+"  +"+q.reward+" XP"); }
+  });
+  return hit;
+}
+
+/* ============================================================== SELECTION */
+const BOXW = [4, 10, 6, 3, 1.5, 0.6]; // index 0 = never seen
+function pick(pool, n){
+  const scored = pool.map(q=>{
+    const r=P.q[q.id];
+    let w = r ? (BOXW[clamp(r.box,0,5)]||1) : BOXW[0];
+    if(q.missed) w*=1.6;                       // real-quiz misses drilled hardest
+    if(q.source==="actual") w*=1.25;
+    if(r && r.last===todayKey()) w*=0.45;      // don't repeat within the day
+    return {q:q, w:w*(0.65+Math.random()*0.7)};
+  });
+  scored.sort((a,b)=>b.w-a.w);
+  return scored.slice(0,n).map(x=>x.q);
+}
+
+/* Mock quiz assembled from the teacher's documented habits (CLAUDE.md). */
+const TYPE_MIX = {short:0.65, fill:0.12, tf:0.10, define:0.07, list:0.03, mc:0.03};
+function buildMock(chapters){
+  const chs = chapters.slice().sort((a,b)=>a-b);
+  const inCh = (q)=> chs.indexOf(q.chapter)>=0;
+  const pool = QUESTIONS.filter(q=> inCh(q) && !q.bonus);
+  const bonusPool = QUESTIONS.filter(q=> inCh(q) && (q.bonus || q.type==="define"));
+  const nMain = clamp(15+Math.floor(Math.random()*5), 8, Math.max(8,pool.length));
+  const out=[]; const used=new Set();
+  const take=(q)=>{ if(q && !used.has(q.id)){ used.add(q.id); out.push(q); return true; } return false; };
+
+  // 1. recycle 2-3 from the most recent quiz — he does this every time
+  const qn = quizNumbers();
+  const forced = new Set();
+  if(qn.length){
+    const last = qn[qn.length-1];
+    const recyc = QUESTIONS.filter(q=>q.quiz===last && !q.bonus);
+    sample(recyc, 2+Math.floor(Math.random()*2)).forEach(q=>{ if(take(q)) forced.add(q.id); });
+  }
+  // 2. chapter weighting — the earlier chapter still gets real weight
+  const quota = {};
+  if(chs.length>1){
+    const later=chs[chs.length-1];
+    chs.forEach(c=> quota[c]=Math.round(nMain*(c===later?0.7:0.3/(chs.length-1))));
+  } else quota[chs[0]]=nMain;
+
+  // 3. fill each chapter to quota, honouring the observed type mix
+  chs.forEach(c=>{
+    const want = quota[c] - out.filter(q=>q.chapter===c).length;
+    if(want<=0) return;
+    const cpool = pool.filter(q=>q.chapter===c && !used.has(q.id));
+    const byType = {};
+    cpool.forEach(q=>{ (byType[q.type]=byType[q.type]||[]).push(q); });
+    let placed=0;
+    Object.keys(TYPE_MIX).forEach(t=>{
+      const k = Math.round(want*TYPE_MIX[t]);
+      sample(byType[t]||[], k).forEach(q=>{ if(placed<want && take(q)) placed++; });
+    });
+    sample(cpool.filter(q=>!used.has(q.id)), want-placed).forEach(take);
+  });
+  // 4. top up if a chapter ran thin
+  if(out.length<nMain) sample(pool.filter(q=>!used.has(q.id)), nMain-out.length).forEach(take);
+
+  // 5. trim to size without dropping the force-recycled questions,
+  //    then keep paired questions adjacent and in order (name -> city -> method)
+  let trimmed = shuffle(out);
+  while(trimmed.length>nMain){
+    const i = trimmed.findIndex(q=>!forced.has(q.id));
+    trimmed.splice(i>=0?i:trimmed.length-1,1);
+  }
+  const main = orderPairs(trimmed);
+  const bonus = sample(bonusPool.filter(q=>!used.has(q.id)), 3);
+  return {main:main, bonus:bonus};
+}
+function orderPairs(list){
+  const out=[]; const done=new Set();
+  list.forEach(q=>{
+    if(done.has(q.id)) return;
+    out.push(q); done.add(q.id);
+    if(q.pair) list.forEach(o=>{ if(o.pair===q.pair && !done.has(o.id)){ out.push(o); done.add(o.id); } });
+  });
+  return out;
+}
+/* Recognition-mode distractors are always real answers from the bank. */
+/* Distractors must be like-for-like, or wrong options eliminate themselves:
+   a person answer gets other people, a city gets cities, a number gets numbers.
+   Categories are curated from the bank's own content; shape-matching is the
+   fallback when a category runs thin. */
+const CATS = {
+  emperor: ["Nero","Domitian","Trajan","Marcus Aurelius","Commodus","Septimius Severus",
+    "Caracalla","Elagabalus","Alexander Severus","Maximin","Decius","Gallus","Valerian",
+    "Diocletian","Maximian","Galerius","Constantius Chlorus","Constantine","Maxentius",
+    "Licinius","Maximinus Daia","Severus","Philip the Arabian","Tiberius"],
+  person: ["Peter","Paul","James","John","Philip","Thomas","Mark","Luke","Stephen","Barnabas",
+    "Onesimus","Epaphras","Phoebe","Junia","Felicitas","Perpetua","Revocatus","Saturninus",
+    "Secundulus","Polycarp","Ignatius","Germanicus","Quintus","Sanctus","Epagathus",
+    "Justin Martyr","Justin","Tatian","Athenagoras","Theophilus of Antioch","Aristides",
+    "Quadratus","Minucius Felix","Tertullian","Celsus","Cornelius Fronto","Irenaeus",
+    "Clement of Rome","Clement of Alexandria","Pantaenus","Origen","Demetrius","Montanus",
+    "Priscilla","Maximilla","Praxeas","Calixtus","Hippolytus","Cyprian","Novatian",
+    "Cornelius","Marcion","Valentinus","Dorotheus","Prisca","Valeria","Julia Mammea",
+    "Pontianus","Gregory Thaumaturgus","Abercius","Herod the Great","Philo","Alexander",
+    "Moses","Socrates","Plato","Aristotle","Homer","Trypho","Lactantius",
+    "Eusebius of Caesarea","Pliny the Younger","Pliny","The Maccabees","Anna and Joachim"],
+  place: ["Rome","Jerusalem","Antioch","Alexandria","Carthage","Smyrna","Ephesus","Colossae",
+    "Corinth","Pella","Lyons","Lyons and Vienne","Bithynia","Pontus","Sinope","Caesarea",
+    "Tyre","Nag Hammadi","Dura-Europos","Athens","Milan","India","Spain","Gaul",
+    "The Milvian Bridge","Herculaneum","Neocaesarea","Hierapolis","Troas","Philippi"],
+  nation: ["Assyria","Babylon","Rome","Persia","Egypt","Greece"],
+  group: ["Pharisees","Sadducees","Essenes","The Christians","The Jews","The Gentiles",
+    "God-fearers","Hellenists","The Gnostics","The Marcionites","The Montanists",
+    "The Tertullianists","The apologists","The apostolic fathers","The bishops",
+    "The deacons","The Persians","Catechumens","Confessors","The lapsed","The barbarians","Libertines","Ascetics",
+    "Ordinary Christians","The Maccabees"],
+  writing: ["Revelation","The True Word","Against Celsus","The Didache",
+    "The Shepherd of Hermas","The Hexapla","On First Principles","Octavius","Apology",
+    "Prescription Against the Heretics","Against Praxeas","On Baptism","To His Wife",
+    "The Gospel of Thomas","The Gospel of Truth","The Gospel of Judas","The Gospel of Luke",
+    "The Septuagint","Dialogue with Trypho","Address to the Greeks","Letter to Diognetus",
+    "The Apostles' Creed","The Nicene Creed","The Edict of Milan",
+    "The Protoevangelium of James","Acts","Meditations","First Clement"],
+  numberword: ["Four","Seven","Twelve","Seventy","Eighty-six","Three","Two"],
+  year: ["70","111","144","155","161","180","202","203","207","249","251","303","311",
+    "312","313","324","365","86"]
+};
+/* numeric words and digits that mean the same thing must never face each other */
+const NUMEQ = {"four":"4","seven":"7","twelve":"12","seventy":"70","eighty six":"86",
+  "three":"3","two":"2","ad 70":"70"};
+function numKey(v){ const k=norm(v); return NUMEQ[k]||k.replace(/[^0-9]/g,"")||k; }
+const NCATS = {};
+Object.keys(CATS).forEach(c=>{ NCATS[c]=new Set(CATS[c].map(x=>norm(x))); });
+function answerCat(ans){
+  const k=norm(String(ans).replace(/\s*\(.*$/,""));
+  for(const c of ["emperor","numberword","year","place","nation","person","group","writing"])
+    if(NCATS[c].has(k)) return c;
+  if(/^(ad )?\d+$/.test(k)) return "year";
+  return null;
+}
+/* which categories may substitute when the primary runs dry */
+const CAT_FRIENDS = { emperor:["person"], person:["emperor"], nation:["place"],
+  place:["nation"], numberword:["year"], year:["numberword"], group:["person"],
+  writing:[] };
+function shapeLike(a,b){
+  const wa=String(a).trim().split(/\s+/).length, wb=String(b).trim().split(/\s+/).length;
+  if((String(a).length>60)!==(String(b).length>60)) return false;
+  if(wa>2*wb+1 || wb>2*wa+1) return false;
+  const r=String(a).length/Math.max(1,String(b).length);
+  return r>0.35 && r<2.9;
+}
+function distractors(q,n){
+  const seen=new Set([norm(q.answer)]);
+  (q.accept||[]).forEach(a=>seen.add(norm(a)));
+  const isNum=/^(ad )?\d+$/.test(norm(q.answer))||answerCat(q.answer)==="numberword"||
+    answerCat(q.answer)==="year";
+  const numSeen=new Set(isNum?[numKey(q.answer)]:[]);
+  const out=[];
+  const longA=String(q.answer).length>60;
+  const ansK=norm(q.answer);
+  const take=(list)=>{ shuffle(list).forEach(v=>{ const k=norm(v);
+    if(seen.has(k)||out.length>=n) return;
+    if(k.includes(ansK)||ansK.includes(k)) return;   // never smuggle the answer into an option
+    if((String(v).length>60)!==longA) return;
+    if(isNum){ const nk=numKey(v); if(numSeen.has(nk)) return; numSeen.add(nk); }
+    seen.add(k); out.push(v); }); };
+  const cat=answerCat(q.answer);
+  const fromCat=(c)=>{
+    const mine=norm(String(q.answer).replace(/\s*\(.*$/,""));
+    const near=[], far=[];
+    QUESTIONS.forEach(o=>{
+      if(o.id===q.id||!o.answer) return;
+      if(answerCat(o.answer)!==c) return;
+      (Math.abs((o.chapter||0)-(q.chapter||0))<=1?near:far).push(o.answer);
+    });
+    take(near); take(far);
+    if(out.length<n) take(CATS[c].filter(x=>norm(x)!==mine));
+  };
+  if(cat){
+    fromCat(cat);
+    (CAT_FRIENDS[cat]||[]).forEach(c=>{ if(out.length<n) fromCat(c); });
+  }
+  if(out.length<n){        // shape-matched fallback for uncategorized answers
+    const same=[], other=[];
+    QUESTIONS.forEach(o=>{
+      if(o.id===q.id||!o.answer) return;
+      if(!shapeLike(q.answer,o.answer)) return;
+      (o.chapter===q.chapter?same:other).push(o.answer);
+    });
+    take(same); take(other);
+  }
+  if(out.length<n)         // absolute last resort, still shape-guarded
+    take(QUESTIONS.filter(o=>o.id!==q.id&&o.answer&&
+      (String(o.answer).length>60)===(String(q.answer).length>60)).map(o=>o.answer));
+  return out;
+}
+
+/* ================================================================== SOUND */
+let AC=null;
+function beep(freq,dur,type){
+  if(!P||!P.sound) return;
+  try{
+    AC = AC || new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.type=type||"sine"; o.frequency.value=freq;
+    g.gain.setValueAtTime(.0001,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(.12,AC.currentTime+.01);
+    g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+dur);
+    o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime+dur+.02);
+  }catch(e){}
+}
+const sndOk   = ()=>{ beep(660,.09); setTimeout(()=>beep(880,.13),75); };
+const sndNo   = ()=> beep(200,.16,"triangle");
+const sndLvl  = ()=>{ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.16),i*95)); };
+
+/* ================================================================= CHROME */
+function toast(msg,ms){
+  const t=el("toast"); t.textContent=msg; t.classList.add("up");
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("up"), ms||2400);
+}
+let celebQ=[];
+function queueCeleb(c){ celebQ.push(c); }
+function flushCelebs(after){
+  if(!celebQ.length){ const b=el("celebrate"); b.classList.remove("on"); b.innerHTML="";
+    after&&after(); return; }
+  const c=celebQ.shift();
+  const box=el("celebrate");
+  box.innerHTML='<div><div class="glyph">'+c.glyph+'</div><h2>'+esc(c.title)+'</h2>'+
+    '<p>'+esc(c.body||"")+'</p><div class="wrap"><button class="btn primary" id="celebOk">Nice</button></div></div>';
+  box.classList.add("on"); sndLvl();
+  if(c.confetti) confetti();
+  el("celebOk").onclick=()=>{ box.classList.remove("on"); flushCelebs(after); };
+}
+function confetti(){
+  const c=document.createElement("div"); c.className="confetti";
+  const cols=["#c1873a","#4f9d5d","#7a5ba6","#e07b39","#dda94f"];
+  for(let i=0;i<70;i++){
+    const p=document.createElement("i");
+    p.style.left=Math.random()*100+"vw"; p.style.top=(-12-Math.random()*22)+"vh";
+    p.style.background=cols[i%cols.length];
+    p.style.animationDuration=(1.5+Math.random()*1.6)+"s";
+    p.style.animationDelay=(Math.random()*.35)+"s";
+    c.appendChild(p);
+  }
+  document.body.appendChild(c); setTimeout(()=>c.remove(),3600);
+}
+function topbar(show){
+  const t=el("topbar"); t.hidden=!show;
+  if(!show||!P) return;
+  el("tbFace").textContent=P.avatar; el("tbName").textContent=P.name;
+  el("tbStreak").textContent="🔥 "+P.streak;
+  el("tbXp").textContent="⭐ "+P.xp;
+}
+function setTheme(id){ document.documentElement.setAttribute("data-theme", id||"parchment"); }
+function render(html){ el("screen").innerHTML='<div class="screen wrap">'+html+'</div>';
+  window.scrollTo(0,0); }
+
+/* ============================================================== SCREEN: profiles */
+const AVATARS=["🕊️","📜","🔥","⛪","🦁","🗝️","🌿","⭐","🛡️","🐟","✝️","🏛️"];
+function scrProfiles(){
+  topbar(false); setTheme("parchment");
+  const list=profiles();
+  render(
+   '<div class="brandmark"><div class="glyph">📜</div><h1>The Story</h1>'+
+   '<p>Church history, one question at a time</p></div>'+
+   (list.length?'<div class="sec-title">Who\'s studying?</div><div class="plist">'+
+     list.map(p=>{
+       const d=loadP(p.id)||{};
+       return '<button class="prow" data-id="'+p.id+'"><div class="face">'+p.avatar+'</div>'+
+        '<div><div class="nm">'+esc(p.name)+'</div><div class="sub">🔥 '+(d.streak||0)+
+        ' day streak · ⭐ '+(d.xp||0)+' XP</div></div>'+
+        '<span class="del" data-del="'+p.id+'">×</span></button>';
+     }).join("")+'</div>':'<p class="muted center" style="margin:28px 0">No players yet — add one to begin.</p>')+
+   '<div class="sp"></div><button class="btn primary" id="addP">+ New player</button>'+
+   '<button class="btn ghost" id="restoreP">Restore from backup</button>'+
+   '<div class="center" style="margin-top:22px"><span class="muted" id="ver">The Story v'+VERSION+'</span></div>'
+  );
+  list.forEach(()=>{});
+  document.querySelectorAll(".prow").forEach(b=>{
+    b.onclick=(e)=>{
+      const del=e.target.getAttribute("data-del");
+      if(del){ e.stopPropagation();
+        if(confirm("Delete this player and all their progress?")){
+          saveProfiles(profiles().filter(x=>x.id!==del));
+          localStorage.removeItem(NS+".p."+del); scrProfiles(); }
+        return; }
+      enter(b.getAttribute("data-id"));
+    };
+  });
+  el("addP").onclick=scrNewProfile;
+  el("restoreP").onclick=()=>scrRestore(scrProfiles);
+  versionTap(el("ver"));
+}
+function scrNewProfile(){
+  let av=AVATARS[0];
+  render('<div class="sec-title">New player</div>'+
+    '<div class="card"><input class="field" id="nm" placeholder="Code name" maxlength="18" autocomplete="off">'+
+    '<div class="muted" style="margin-top:8px;font-size:12.5px">\u26a0\ufe0f Player names appear on the '+
+    'public class leaderboard, so use a <b>code name</b> \u2014 not your real full name.</div>'+
+    '<div class="sec-title" style="margin-top:18px">Pick an icon</div>'+
+    '<div class="avatar-grid" id="avs">'+AVATARS.map((a,i)=>
+      '<button data-a="'+a+'" aria-pressed="'+(i===0)+'">'+a+'</button>').join("")+'</div></div>'+
+    '<button class="btn primary" id="go">Start studying</button>'+
+    '<button class="btn ghost" id="back">Back</button>');
+  $("#avs").onclick=(e)=>{ const b=e.target.closest("button"); if(!b) return;
+    av=b.getAttribute("data-a");
+    document.querySelectorAll("#avs button").forEach(x=>x.setAttribute("aria-pressed",x===b)); };
+  el("back").onclick=scrProfiles;
+  el("go").onclick=()=>{
+    const n=el("nm").value.trim(); if(!n){ toast("Add a name first"); return; }
+    const p=newProfile(n,av); write(NS+".active",p.id); enter(p.id);
+  };
+  setTimeout(()=>{ const n=el("nm"); if(n) n.focus(); },80);
+}
+function enter(id){
+  P=loadP(id); if(!P){ scrProfiles(); return; }
+  // forward-compat defaults for profiles made by older builds
+  P.quests=P.quests||{date:null,daily:[],week:null,weekly:[]};
+  P.weekXp=P.weekXp||{week:weekKey(),xp:0};
+  P.badges=P.badges||[]; P.q=P.q||{}; P.history=P.history||[];
+  if(P.sound==null) P.sound=true;
+  write(NS+".active",id);
+  refreshQuests(); setTheme(P.theme); saveP(P);
+  if(!P.onboarded) scrOnboard();
+  else { scrMap(); offerResume(); }
+}
+
+/* ============================================================== SCREEN: onboarding */
+function scrOnboard(){
+  topbar(false);
+  render('<div class="brandmark"><div class="glyph">👋</div><h1>Hi, '+esc(P.name)+'</h1>'+
+    '<p>Here\'s how it works — it takes about a minute.</p></div>'+
+    '<div class="card"><div class="quest"><div class="qic">1️⃣</div><div class="qmain">'+
+      '<div class="qlab">Answer a question</div><div class="muted">Type it, or tap a choice.</div></div></div>'+
+    '<div class="quest"><div class="qic">2️⃣</div><div class="qmain">'+
+      '<div class="qlab">See the answer straight away</div>'+
+      '<div class="muted">Spelling is graded loosely — and you can always overrule it.</div></div></div>'+
+    '<div class="quest"><div class="qic">3️⃣</div><div class="qmain">'+
+      '<div class="qlab">Anything you miss comes back</div>'+
+      '<div class="muted">Weak spots resurface until they stick.</div></div></div></div>'+
+    '<button class="btn go" id="go">Try 5 easy ones</button>');
+  el("go").onclick=()=>{
+    // guaranteed early win: easiest formats, recognition only (playbook §4)
+    const easy = QUESTIONS.filter(q=>q.source==="actual" &&
+      (q.type==="tf"||q.type==="mc"|| (q.type==="short"&&String(q.answer).length<26)));
+    const qs = sample(easy,5);
+    P.onboarded=true; saveP(P);
+    startRound({title:"Warm-up", questions:qs, mode:"warmup", forceRecognition:true});
+  };
+}
+
+/* ============================================================== SCREEN: map */
+function scrMap(){
+  topbar(true); refreshQuests(); saveP(P);
+  const lv=levelFor(P.xp);
+  const span=Math.max(1,(lv.ceil-lv.floor));
+  const pct=lv.next?clamp((P.xp-lv.floor)/span*100,0,100):100;
+  const tr=troubleSpots(5);
+  const covered=chaptersWith(null);
+
+  render(
+  '<div class="hero"><div class="hero-top">'+
+    '<div style="flex:1"><div class="lvl">Level '+lv.level+'</div>'+
+    '<div class="ttl">'+lv.title+'</div></div>'+
+    '<div style="text-align:right"><div class="lvl">🔥 '+P.streak+'</div>'+
+    '<div class="ttl">'+(P.freezes?("❄️ "+P.freezes+" freeze"+(P.freezes>1?"s":"")):"day streak")+'</div></div>'+
+  '</div><div class="bar"><i style="width:'+pct+'%"></i></div>'+
+  '<div class="barlab"><span>⭐ '+P.xp+' XP</span><span>'+
+    (lv.next?(lv.ceil-P.xp)+" to "+lv.next.t:"Top rank")+'</span></div></div>'+
+
+  '<div class="modegrid">'+
+    '<button class="modecard accent" id="mTest"><div class="ic">📋</div>'+
+      '<h3>Test Study</h3><p>Real questions from past quizzes.</p></button>'+
+    '<button class="modecard accent2" id="mPred"><div class="ic">🔮</div>'+
+      '<h3>Quiz Predictor</h3><p>A mock quiz for the chapters your teacher announced.</p></button>'+
+  '</div>'+
+  '<div class="btn-row"><button class="btn" id="mMatch">🧩 Match</button>'+
+    '<button class="btn" id="mQuick">⚡ Quick 10</button></div>'+
+
+  (tr.length?'<div class="sec-title">Trouble spots</div><div class="card tight">'+
+    tr.map(x=>'<div class="trouble"><span class="tb">'+x.r.wrong+'✗</span>'+
+      '<span class="tq">'+esc(x.q.question.replace(/^T or F:\s*/,""))+'</span></div>').join("")+
+    '<div class="sp"></div><button class="btn go" id="drill">Drill these '+tr.length+'</button></div>':"")+
+
+  '<div class="sec-title">Today\'s quests</div><div class="card tight">'+
+    (P.quests.daily||[]).map(qq=>questRow(qq)).join("")+'</div>'+
+  '<div class="sec-title">This week</div><div class="card tight">'+
+    (P.quests.weekly||[]).map(qq=>questRow(qq)).join("")+'</div>'+
+  '<div class="sec-title">Class board</div><div class="card tight" id="boardZone"></div>'+
+
+  '<div class="sec-title">The journey</div><div class="path">'+
+    CHAPTERS.map(c=>{
+      const has=covered.indexOf(c.n)>=0;
+      const m=has?mastery(c.n):0;
+      const n=QUESTIONS.filter(q=>q.chapter===c.n).length;
+      const done=m>=0.999, now=has&&!done&&m>0;
+      const C=2*Math.PI*29;
+      return '<button class="node'+(done?" done":"")+(now?" now":"")+(has?"":" locked")+'"'+
+        (has?' data-ch="'+c.n+'"':' disabled')+'>'+
+        '<div class="ring"><svg width="64" height="64">'+
+          '<circle cx="32" cy="32" r="29" fill="none" stroke="var(--line)" stroke-width="4"/>'+
+          '<circle cx="32" cy="32" r="29" fill="none" stroke="var(--gold)" stroke-width="4"'+
+          ' stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+(C*(1-m))+'"/>'+
+        '</svg><div class="core"><span class="num">'+(done?"✓":c.n)+'</span></div></div>'+
+        '<div class="meta"><div class="cname">'+esc(c.t)+'</div>'+
+        '<div class="csub">'+(has?(Math.round(m*100)+"% mastered · "+n+" questions"):"Material needed")+'</div>'+
+        (has?'<span class="tag keys" data-k="'+c.n+'">Key ideas</span>'
+            :'<span class="tag need">Send photos to unlock</span>')+'</div></button>';
+    }).join("")+'</div>'+
+
+  '<div class="sec-title">Badges</div><div class="card tight">'+
+    BADGES.map(b=>{ const got=P.badges.indexOf(b.id)>=0;
+      return '<div class="quest"'+(got?"":' style="opacity:.42"')+'><div class="qic">'+b.ic+'</div>'+
+      '<div class="qmain"><div class="qlab">'+b.name+'</div>'+
+      '<div class="muted" style="font-size:12.5px">'+b.desc+'</div></div>'+
+      (got?'<span class="qrew">✓</span>':"")+'</div>'; }).join("")+'</div>'+
+
+  '<div class="sp"></div><button class="btn ghost" id="settings">Settings</button>'+
+  '<div class="center"><span class="muted" id="ver">v'+VERSION+'</span></div>'
+  );
+
+  el("mTest").onclick=scrTestSetup;
+  el("mPred").onclick=scrPredSetup;
+  el("mMatch").onclick=scrMatchSetup;
+  el("mQuick").onclick=()=>startRound({title:"Quick 10",
+    questions:pick(actualQs(),10), mode:"quick"});
+  if(el("drill")) el("drill").onclick=()=>startRound({title:"Trouble spots",
+    questions:troubleSpots(8).map(x=>x.q), mode:"drill"});
+  document.querySelectorAll(".node[data-ch]").forEach(b=>{
+    b.onclick=()=>{ const c=+b.getAttribute("data-ch");
+      readGate([c], ()=>conceptsGate([c], ()=>
+        startRound({title:chapTitle(c), questions:pick(QUESTIONS.filter(q=>q.chapter===c),12),
+          mode:"chapter", chapter:c}))); };
+  });
+  document.querySelectorAll(".tag.keys").forEach(k=>{
+    k.onclick=(e)=>{ e.stopPropagation(); const c=+k.getAttribute("data-k");
+      modal(conceptsHTML(c)+'<button class="btn ghost" id="mCls">Close</button>');
+      el("mCls").onclick=closeModal; };
+  });
+  el("settings").onclick=scrSettings;
+  versionTap(el("ver"));
+  renderBoard(el("boardZone"));
+  maybePostBoard();
+}
+function questRow(q){
+  const p=clamp(q.progress/q.target*100,0,100);
+  return '<div class="quest'+(q.done?" done":"")+'"><div class="qic">'+q.ic+'</div>'+
+    '<div class="qmain"><div class="qlab">'+q.label+'</div>'+
+    '<div class="qbar"><i style="width:'+p+'%"></i></div></div>'+
+    '<span class="qrew">'+(q.done?"✓":"+"+q.reward)+'</span></div>';
+}
+function versionTap(node){
+  if(!node) return; let n=0,t=0;
+  node.onclick=()=>{ const now=Date.now(); if(now-t>1200) n=0; t=now; n++;
+    if(n>=5){ n=0; scrAdmin(); } };
+}
+
+/* ============================================================== SCREEN: settings */
+/* ================================================== BACKUP / RESTORE CODES
+   Progress lives in browser storage, which phones sometimes treat as
+   disposable (in-app browsers, private mode, storage cleanup). A backup code
+   is the escape hatch: profile -> Base64 string -> paste to restore. */
+function backupCode(){
+  const d={v:1, t:Date.now(), p:P};
+  return btoa(unescape(encodeURIComponent(JSON.stringify(d))))
+    .replace(/=+$/,"");
+}
+function parseBackup(code){
+  try{
+    const d=JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
+    if(!d||!d.p||!d.p.name||typeof d.p.xp!=="number") return null;
+    return d;
+  }catch(e){ return null; }
+}
+function restoreBackup(code){
+  const d=parseBackup(code);
+  if(!d) return "That doesn't look like a backup code — check the paste and try again.";
+  const inc=d.p;
+  const list=profiles();
+  let tgt=list.find(x=>x.id===inc.id);
+  const cur=tgt?loadP(inc.id):null;
+  if(cur && cur.xp>inc.xp){
+    // never let an old code clobber newer progress: keep the richer record
+    return "You already have newer progress for "+esc(inc.name)+
+      " ("+cur.xp+" XP vs "+inc.xp+" XP in the code) — nothing was changed.";
+  }
+  if(cur){ // merge per-question boxes, keeping the better-known of each
+    inc.q=inc.q||{}; cur.q=cur.q||{};
+    Object.keys(cur.q).forEach(id=>{
+      if(!inc.q[id] || (cur.q[id].seen||0)>(inc.q[id].seen||0)) inc.q[id]=cur.q[id];
+    });
+    inc.streak=Math.max(inc.streak||0,cur.streak||0);
+  }
+  if(!tgt){ list.push({id:inc.id,name:inc.name,avatar:inc.avatar}); saveProfiles(list); }
+  saveP(inc);
+  return null; // success
+}
+function scrBackup(){
+  const code=backupCode();
+  render('<div class="sec-title">Backup my progress</div>'+
+   '<div class="card"><div class="muted">This code holds everything — XP, streak, badges, '+
+   'and which questions you know. Copy it somewhere safe (text it to yourself). '+
+   'If your progress ever disappears, paste it back with Restore.</div>'+
+   '<textarea class="field" id="bkOut" readonly style="height:110px;font-size:11px;'+
+   'word-break:break-all;margin-top:10px">'+code+'</textarea>'+
+   '<button class="btn primary" id="bkCopy">Copy code</button></div>'+
+   '<div class="sp"></div><button class="btn ghost" id="back">Back</button>');
+  el("bkCopy").onclick=()=>{
+    const t=el("bkOut"); t.select(); t.setSelectionRange(0,999999);
+    try{ navigator.clipboard.writeText(t.value).then(
+      ()=>toast("Copied — paste it somewhere safe"),
+      ()=>{ document.execCommand("copy"); toast("Copied"); }); }
+    catch(e){ document.execCommand("copy"); toast("Copied"); }
+  };
+  el("back").onclick=scrSettings;
+}
+function scrRestore(back){
+  render('<div class="sec-title">Restore from backup</div>'+
+   '<div class="card"><div class="muted">Paste a backup code below.</div>'+
+   '<textarea class="field" id="bkIn" style="height:110px;font-size:11px;'+
+   'word-break:break-all;margin-top:10px" placeholder="Paste your code here"></textarea>'+
+   '<button class="btn go" id="bkGo">Restore</button></div>'+
+   '<div class="sp"></div><button class="btn ghost" id="back">Back</button>');
+  el("bkGo").onclick=()=>{
+    const err=restoreBackup(el("bkIn").value);
+    if(err){ toast(err); return; }
+    toast("Progress restored ✓"); scrProfiles();
+  };
+  el("back").onclick=back;
+}
+
+function scrSettings(){
+  const lv=levelFor(P.xp);
+  render('<div class="sec-title">Settings</div>'+
+   '<div class="card"><div class="sec-title" style="margin-top:0">Theme</div>'+
+    THEMES.map(t=>{ const ok=P.xp>=t.need;
+      return '<button class="optrow" data-t="'+t.id+'" aria-pressed="'+(P.theme===t.id)+'"'+
+      (ok?"":" disabled")+'><span class="oic">'+(ok?"🎨":"🔒")+'</span><span class="om">'+
+      '<span class="ot">'+t.name+'</span><span class="os">'+(ok?"Available":t.how)+'</span></span></button>';
+    }).join("")+'</div>'+
+   '<div class="card"><button class="optrow" id="snd" aria-pressed="'+(!!P.sound)+'">'+
+     '<span class="oic">'+(P.sound?"🔊":"🔇")+'</span><span class="om"><span class="ot">Sound</span>'+
+     '<span class="os">Little blips on right and wrong</span></span></button>'+
+   '<button class="optrow" id="cmp" aria-pressed="'+(!!P.compete)+'">'+
+     '<span class="oic">🏆</span><span class="om"><span class="ot">Weekly leaderboard</span>'+
+     '<span class="os">Compare with other players on this device. Off by default.</span></span></button></div>'+
+   (P.compete?leaderboard():"")+
+   '<div class="card tight"><div class="muted">Rank: <b>'+lv.title+'</b> · Best streak: <b>'+
+     (P.best||0)+' days</b> · Answered: <b>'+Object.keys(P.q).length+'</b> questions</div></div>'+
+   '<button class="btn ghost" id="bkup">Backup my progress</button>'+
+   '<button class="btn ghost" id="switch">Switch player</button>'+
+   '<button class="btn ghost" id="back">Back</button>');
+  document.querySelectorAll("[data-t]").forEach(b=> b.onclick=()=>{
+    P.theme=b.getAttribute("data-t"); setTheme(P.theme); saveP(P); scrSettings(); });
+  el("snd").onclick=()=>{ P.sound=!P.sound; saveP(P); scrSettings(); };
+  el("cmp").onclick=()=>{ P.compete=!P.compete; saveP(P); scrSettings(); };
+  el("bkup").onclick=scrBackup;
+  el("switch").onclick=()=>{ P=null; scrProfiles(); };
+  el("back").onclick=scrMap;
+}
+/* ===================================================== SHARED CLASS BOARD
+   Online (published artifact) only. The page stores the board in its own
+   board.json via the artifact capability's files publish — the publishing
+   view keeps running; other open views reload (they land back on the map).
+   Absent capability (file://, read-only share) degrades to a note. */
+/* Firestore config — public client values, filled at deploy time. When set,
+   the board reads/writes one Firestore doc per player (no conflicts, no
+   reloads); when empty, falls back to the artifact-capability mechanism. */
+const FIREBOARD = { projectId:"the-story-game-bf349", apiKey:"AIzaSyCBoNA4ZDSTAaBiY8SKQXEw2O9T9xywK5A" };
+const fireOn = ()=>!!FIREBOARD.projectId;
+const fireBase = ()=>"https://firestore.googleapis.com/v1/projects/"+FIREBOARD.projectId+
+  "/databases/(default)/documents/board";
+let BOARDDATA = read(NS+".boardcache", {week:null, players:[]});
+async function fireLoad(){
+  try{
+    const r=await fetch(fireBase()+"?pageSize=300&key="+FIREBOARD.apiKey,{cache:"no-store"});
+    if(!r.ok) return;
+    const j=await r.json();
+    const wk=weekKey();
+    const players=(j.documents||[]).map(doc=>{
+      const f=doc.fields||{};
+      const g=(k,kind)=>f[k]?(kind==="i"?parseInt(f[k].integerValue||"0",10):(f[k].stringValue||"")):"";
+      return { id:(doc.name||"").split("/").pop(), name:g("name"), avatar:g("avatar"),
+        week:g("week"), xp:g("xp","i")||0, streak:g("streak","i")||0, mastered:g("mastered","i")||0 };
+    }).filter(p=>p.week===wk && p.name);
+    BOARDDATA={week:wk, players:players};
+    write(NS+".boardcache",BOARDDATA);
+    const n=el("boardZone"); if(n&&P) renderBoard(n);
+  }catch(e){/* offline — cached board stands */}
+}
+async function firePost(){
+  const e=myBoardEntry();
+  const docId=(e.week+"_"+P.id).replace(/[^A-Za-z0-9_-]/g,"");
+  const body={fields:{
+    name:{stringValue:String(e.name).slice(0,20)}, avatar:{stringValue:String(e.avatar||"🙂")},
+    week:{stringValue:e.week}, xp:{integerValue:String(e.xp)},
+    streak:{integerValue:String(e.streak)}, mastered:{integerValue:String(e.mastered)},
+    t:{integerValue:String(Date.now())}}};
+  try{
+    const r=await fetch(fireBase()+"/"+docId+"?key="+FIREBOARD.apiKey,
+      {method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    if(r.ok){ P.board.posted=e.week+":"+e.xp; saveP(P); fireLoad(); }
+  }catch(err){/* offline — next map visit retries */}
+}
+async function loadBoard(){
+  if(fireOn()){ fireLoad(); return; }
+  try{
+    const r=await fetch("board.json",{cache:"no-store"});
+    if(r.ok){ BOARDDATA=await r.json()||{players:[]};
+      write(NS+".boardcache",BOARDDATA);
+      const n=el("boardZone"); if(n&&P) renderBoard(n); }
+  }catch(e){/* file:// or never published — cache stands */}
+}
+function myBoardEntry(){
+  const wk=weekKey();
+  return { id:P.id, name:P.name, avatar:P.avatar, week:wk,
+    xp:(P.weekXp&&P.weekXp.week===wk)?P.weekXp.xp:0,
+    streak:P.streak||0,
+    mastered:CHAPTERS.filter(c=>mastery(c.n)>=0.999).length };
+}
+async function pushBoard(includeMe){
+  if(!(window.claude&&claude.use)) return;
+  const art=await claude.use("artifact");
+  if(!art){ return; }
+  const wk=weekKey();
+  const b={ week:wk,
+    players:(BOARDDATA.players||[]).filter(p=>p.id!==P.id&&p.week===wk) };
+  if(includeMe) b.players.push(myBoardEntry());
+  try{
+    await art.publish({"board.json":{content:JSON.stringify(b),contentType:"application/json"}});
+    BOARDDATA=b; write(NS+".boardcache",b);
+    if(includeMe){ P.board.posted=wk+":"+myBoardEntry().xp; saveP(P); }
+    const n=el("boardZone"); if(n) renderBoard(n);
+  }catch(e){
+    const code=e&&e.code;
+    if(code==="not_writer"||code==="not_granted"||code==="capability_disabled"){
+      P.board.readonly=true; saveP(P);
+      const n=el("boardZone"); if(n) renderBoard(n);
+    }
+    /* conflict: another player posted first — their view wins, ours reloads
+       or re-posts on the next map visit. rate_limited/upstream: next visit. */
+  }
+}
+function maybePostBoard(){
+  if(!P) return;
+  P.board=P.board||{};
+  const sig=weekKey()+":"+myBoardEntry().xp;
+  if(P.board.posted===sig) return;
+  if(fireOn()){ firePost(); return; }
+  if(P.board.readonly) return;
+  pushBoard(true);
+}
+function renderBoard(n){
+  P.board=P.board||{};
+  if(!fireOn() && !(window.claude&&claude.use)){
+    n.innerHTML='<div class="muted">The class board lives on the online version of the game — '+
+      'open it there to see everyone\u2019s week.</div>';
+    return;
+  }
+  const wk=weekKey();
+  const rows=(BOARDDATA.players||[]).filter(p=>p.week===wk).sort((a,b)=>b.xp-a.xp);
+  n.innerHTML=
+    (rows.length
+      ? rows.map((p,i)=>'<div class="quest"><div class="qic">'+
+          (i===0?"👑":esc(p.avatar||"🙂"))+'</div>'+
+          '<div class="qmain"><div class="qlab">'+esc(p.name)+(p.id===P.id?" (you)":"")+'</div>'+
+          '<div class="muted" style="font-size:12px">🔥 '+(p.streak||0)+
+          (p.mastered?(' · '+p.mastered+' chapter'+(p.mastered>1?'s':'')+' mastered'):'')+
+          '</div></div><span class="qrew">'+(p.xp||0)+' XP</span></div>').join("")
+      : '<div class="muted">No one on the board yet this week — be the first.</div>')+
+    ((P.board.readonly&&!fireOn())
+      ? '<div class="muted" style="margin-top:8px;font-size:12px">This copy is view-only, so '+
+        'scores can\u2019t be posted from here.</div>'
+      : '<div class="muted" style="margin-top:7px;font-size:11.5px">Every player appears here, '+
+        'ranked by XP earned this week — resets every Monday.</div>');
+}
+
+function leaderboard(){
+  const w=weekKey();
+  const rows=profiles().map(p=>{ const d=loadP(p.id)||{};
+    const wx=(d.weekXp&&d.weekXp.week===w)?d.weekXp.xp:0;
+    return {name:p.name,avatar:p.avatar,xp:wx,me:p.id===P.id}; })
+    .sort((a,b)=>b.xp-a.xp);
+  return '<div class="sec-title">This week\'s XP</div><div class="card tight">'+
+    rows.map((r,i)=>'<div class="quest"><div class="qic">'+(i===0?"🥇":i===1?"🥈":i===2?"🥉":r.avatar)+'</div>'+
+      '<div class="qmain"><div class="qlab">'+esc(r.name)+(r.me?" (you)":"")+'</div></div>'+
+      '<span class="qrew">'+r.xp+'</span></div>').join("")+
+    '<div class="muted" style="margin-top:8px;font-size:12px">Resets every Monday — '+
+    'it ranks XP earned this week, not your all-time total.</div></div>';
+}
+
+/* ============================================================== SCREEN: setups */
+function scrTestSetup(){
+  const qn=quizNumbers();
+  let choice="all";
+  const draw=()=>{
+    render('<div class="sec-title">Test Study</div>'+
+     '<div class="card tight"><div class="muted">Tests are built from questions the teacher '+
+     'has already asked, so this mode uses <b>only real past quiz questions</b> — '+
+      actualQs().length+' of them.</div></div>'+
+     '<div class="sec-title">What are you studying?</div>'+
+     [{v:"all",ic:"📚",t:"Everything",s:"All "+actualQs().length+" real questions, weighted to your weak spots"},
+      {v:"trouble",ic:"🩹",t:"Just my trouble spots",s:"The ones you keep missing"}]
+      .concat(qn.map(n=>({v:"q"+n,ic:"📄",t:"Quiz "+n,
+        s:actualQs().filter(q=>q.quiz===n).length+" questions · chapters "+
+          [...new Set(actualQs().filter(q=>q.quiz===n).map(q=>q.chapter))].join(", ")})))
+      .map(o=>'<button class="optrow" data-v="'+o.v+'" aria-pressed="'+(choice===o.v)+'">'+
+        '<span class="oic">'+o.ic+'</span><span class="om"><span class="ot">'+o.t+'</span>'+
+        '<span class="os">'+o.s+'</span></span></button>').join("")+
+     '<div class="sp"></div><button class="btn go" id="go">Start round</button>'+
+     '<button class="btn ghost" id="back">Back</button>');
+    document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{ choice=b.getAttribute("data-v"); draw(); });
+    el("back").onclick=scrMap;
+    el("go").onclick=()=>{
+      let pool=actualQs(), title="Test Study";
+      if(choice==="trouble"){ pool=troubleSpots(30).map(x=>x.q).filter(q=>q.source==="actual");
+        title="Trouble spots";
+        if(!pool.length){ toast("No trouble spots yet — try Everything"); return; } }
+      else if(choice!=="all"){ const n=+choice.slice(1);
+        pool=actualQs().filter(q=>q.quiz===n); title="Quiz "+n; }
+      startRound({title:title, questions:pick(pool,12), mode:"test"});
+    };
+  };
+  draw();
+}
+function scrPredSetup(){
+  const avail=chaptersWith(null);
+  let sel=[];
+  const recent=avail.slice(-2);
+  sel=recent.slice();
+  const draw=()=>{
+    const n=QUESTIONS.filter(q=>sel.indexOf(q.chapter)>=0).length;
+    render('<div class="sec-title">Quiz Predictor</div>'+
+     '<div class="card tight"><div class="muted">Pick the chapters your teacher announced. '+
+     'This builds a mock quiz in his style — about 17 questions plus bonus, with a couple '+
+     'recycled from the last quiz, because he does that every time.</div></div>'+
+     '<div class="sec-title">Chapters</div><div class="chips">'+
+       CHAPTERS.map(c=>{ const has=avail.indexOf(c.n)>=0;
+         return '<button class="chipbtn" data-c="'+c.n+'" aria-pressed="'+(sel.indexOf(c.n)>=0)+'"'+
+         (has?"":" disabled")+'>'+c.n+(has?"":" 🔒")+'</button>'; }).join("")+'</div>'+
+     '<div class="muted" style="margin-top:10px">'+
+       (sel.length?sel.map(c=>chapTitle(c)).join(" · ")+" — "+n+" questions available"
+                  :"Choose at least one chapter")+'</div>'+
+     '<div class="sp"></div><button class="btn go" id="go"'+(sel.length?"":" disabled")+'>'+
+       'Build my mock quiz</button>'+
+     '<button class="btn ghost" id="back">Back</button>');
+    document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{
+      const c=+b.getAttribute("data-c");
+      const i=sel.indexOf(c); if(i>=0) sel.splice(i,1); else sel.push(c);
+      sel.sort((a,b)=>a-b); draw(); });
+    el("back").onclick=scrMap;
+    el("go").onclick=()=>{
+      const chs=sel.slice();
+      readGate(chs, (function(){ const ok=chs.slice(); return ()=>conceptsGate(ok, ()=>{
+        const mk=buildMock(ok);
+        if(mk.main.length<4){ toast("Not enough questions for those chapters yet"); return; }
+        startRound({title:"Mock Quiz · Ch "+ok.join(", "), questions:mk.main, bonus:mk.bonus,
+          mode:"mock", chapters:ok, graded:true});
+      }); })());
+    };
+  };
+  draw();
+}
+function scrMatchSetup(){
+  const avail=chaptersWith(null);
+  render('<div class="sec-title">Match</div>'+
+    '<div class="card tight"><div class="muted">Pair each question with its answer as fast as '+
+    'you can. Good for names, cities, and how people died — the things this teacher '+
+    'likes to ask back to back.</div></div>'+
+    '<div class="sec-title">Chapter</div><div class="chips">'+
+    avail.map(c=>'<button class="chipbtn" data-c="'+c+'">'+c+'</button>').join("")+'</div>'+
+    '<div class="sp"></div><button class="btn ghost" id="back">Back</button>');
+  el("back").onclick=scrMap;
+  document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>startMatch(+b.getAttribute("data-c")));
+}
+
+/* ============================================================ GATES/MODAL */
+function modal(html){ const m=el("modal");
+  m.innerHTML='<div class="mbox">'+html+'</div>'; m.className="on"; return m; }
+function closeModal(){ const m=el("modal"); m.className=""; m.innerHTML=""; }
+
+function playedChapter(c){
+  return QUESTIONS.some(q=>q.chapter===c && P.q[q.id] && P.q[q.id].seen>0);
+}
+/* "Have you read the chapter?" — asked once per chapter; a Yes is remembered. */
+function readGate(chs, then){
+  P.readAck=P.readAck||{};
+  const c=(chs||[]).find(x=>!P.readAck[x] && !playedChapter(x));
+  if(c==null){ then(); return; }
+  modal('<h3>Have you read Chapter '+c+' yet?</h3>'+
+    '<div class="muted">'+esc(chapTitle(c))+'</div>'+
+    '<button class="btn go" id="mYes">Yes, I read it</button>'+
+    '<button class="btn ghost" id="mNo">Not yet</button>');
+  el("mYes").onclick=()=>{ P.readAck[c]=true; saveP(P); closeModal(); readGate(chs,then); };
+  el("mNo").onclick=()=>{
+    modal('<h3>Reading it first really helps</h3>'+
+      '<div class="muted">This game works best as review. If you read Chapter '+c+' first, '+
+      'the questions will lock the material in instead of just stumping you.</div>'+
+      '<button class="btn primary" id="mCont">Continue anyway</button>'+
+      '<button class="btn ghost" id="mBack">Back to chapter menu</button>');
+    el("mCont").onclick=()=>{ closeModal(); readGate(chs.filter(x=>x!==c),then); };
+    el("mBack").onclick=closeModal;
+  };
+}
+function conceptsHTML(c){
+  const ch=CHAPTERS.find(x=>x.n===c); if(!ch||!ch.k) return "";
+  return '<h3>Ch '+c+' · '+esc(ch.t)+'</h3><ul class="klist">'+
+    ch.k.map(b=>'<li>'+esc(b)+'</li>').join("")+'</ul>';
+}
+/* Key-concepts reminder — first time a chapter is played each day. */
+function conceptsGate(chs, then){
+  P.conceptsDay=P.conceptsDay||{};
+  const t=todayKey();
+  const list=(chs||[]).filter(c=>{ const ch=CHAPTERS.find(x=>x.n===c);
+    return ch && ch.k && P.conceptsDay[c]!==t; });
+  if(!list.length){ then(); return; }
+  const step=(i)=>{
+    if(i>=list.length){ closeModal(); then(); return; }
+    const c=list[i]; P.conceptsDay[c]=t; saveP(P);
+    modal('<div class="klabel">Before you start — remember</div>'+conceptsHTML(c)+
+      '<button class="btn go" id="mGo">'+(i<list.length-1?"Next chapter":"Let\u2019s go")+'</button>');
+    el("mGo").onclick=()=>step(i+1);
+  };
+  step(0);
+}
+
+/* ============================================== ROUND RESUME (reload-proof)
+   The class board (and my updates) republish the artifact, which reloads open
+   views. Snapshot the round after every answer so a reload costs nothing. */
+function snapKey(){ return NS+".resume."+(P?P.id:""); }
+function saveSnap(){
+  if(!R) return;
+  try{ sessionStorage.setItem(snapKey(), JSON.stringify({
+    title:R.title, ids:R.list.map(q=>q.id), bonusIds:R.bonus.map(q=>q.id),
+    i:(R.i0snap!=null?R.i0snap:R.i), mode:R.mode, graded:R.graded, chapter:R.chapter, chapters:R.chapters,
+    right:R.right, wrong:R.wrong, partial:R.partial, streak:R.streak,
+    bestStreak:R.bestStreak, earned:R.earned, possible:R.possible,
+    bonusEarned:R.bonusEarned,
+    review:R.review.map(r=>({id:r.q.id,verdict:r.verdict,given:r.given,
+      missed:r.missed,timeout:r.timeout})) })); }catch(e){}
+}
+function clearSnap(){ try{ sessionStorage.removeItem(snapKey()); }catch(e){} }
+function readSnap(){
+  try{ const v=sessionStorage.getItem(snapKey());
+    return v?JSON.parse(v):null; }catch(e){ return null; }
+}
+function offerResume(){
+  const sn=readSnap();
+  if(!sn || sn.i==null) return false;
+  const byId={}; QUESTIONS.forEach(q=>byId[q.id]=q);
+  const list=(sn.ids||[]).map(id=>byId[id]).filter(Boolean);
+  const bonus=(sn.bonusIds||[]).map(id=>byId[id]).filter(Boolean);
+  if(!list.length || sn.i>=list.length+bonus.length){ clearSnap(); return false; }
+  modal('<h3>Pick up where you left off?</h3>'+
+    '<div class="muted">'+esc(sn.title||"Your round")+' — question '+(sn.i+1)+
+    ' of '+(list.length+bonus.length)+'.</div>'+
+    '<button class="btn go" id="mRes">Keep going</button>'+
+    '<button class="btn ghost" id="mNo2">Start fresh</button>');
+  el("mRes").onclick=()=>{ closeModal();
+    R={ title:sn.title, list:list, bonus:bonus, i:sn.i, mode:sn.mode,
+        graded:!!sn.graded, chapter:sn.chapter, chapters:sn.chapters,
+        forceRecognition:false,
+        right:sn.right||0, wrong:sn.wrong||0, partial:sn.partial||0,
+        streak:sn.streak||0, bestStreak:sn.bestStreak||0,
+        earned:sn.earned||0, possible:sn.possible||0,
+        bonusEarned:sn.bonusEarned||0,
+        review:(sn.review||[]).map(r=>({q:byId[r.id],verdict:r.verdict,
+          given:r.given,missed:r.missed,timeout:r.timeout})).filter(r=>r.q),
+        answered:false, t0:Date.now() };
+    drawQ(); };
+  el("mNo2").onclick=()=>{ clearSnap(); closeModal(); };
+  return true;
+}
+
+/* ================================================================= ROUND */
+let R=null;
+function startRound(cfg){
+  const qs=(cfg.questions||[]).filter(Boolean);
+  if(!qs.length){ toast("No questions available for that yet"); scrMap(); return; }
+  R = { title:cfg.title, list:qs, bonus:cfg.bonus||[], i:0, mode:cfg.mode,
+        graded:!!cfg.graded, chapter:cfg.chapter, chapters:cfg.chapters,
+        forceRecognition:!!cfg.forceRecognition,
+        right:0, wrong:0, partial:0, streak:0, bestStreak:0,
+        earned:0, possible:0, bonusEarned:0, review:[], answered:false, t0:Date.now() };
+  drawQ();
+}
+function allRound(){ return R.list.concat(R.bonus); }
+function curQ(){ return allRound()[R.i]; }
+function isBonus(){ return R.i>=R.list.length; }
+
+/* Interaction format rises with the Leitner box (playbook §7). */
+function formatFor(q){
+  if(q.type==="tf") return "tf";
+  if(q.type==="mc") return "mc";
+  const r=P.q[q.id];
+  const box=r?r.box:0;
+  if(R.forceRecognition) return "recognition";
+  if(R.graded) return "recall";                 // a mock quiz is always written recall
+  // multiple choice only on a question's very first exposure; the teacher's
+  // quizzes are written, so everything after that is typed recall
+  if(!r || !r.seen) return "recognition";
+  if(box>=4 && Math.random()<0.5) return "speed";
+  return "recall";
+}
+function drawQ(){
+  hideVerdict();
+  const q=curQ();
+  if(!q){ finishRound(); return; }
+  topbar(false);
+  const total=allRound().length;
+  const fmt=formatFor(q);
+  R.fmt=fmt; R.answered=false; R.picked=null;
+  const bonus=isBonus();
+
+  let body="";
+  if(fmt==="tf"){
+    body='<div class="opts">'+["True","False"].map(o=>
+      '<button class="opt" data-o="'+o+'">'+o+'</button>').join("")+'</div>';
+  } else if(fmt==="mc"){
+    const opts=q.options&&q.options.length?q.options:shuffle([q.answer].concat(distractors(q,3)));
+    R.opts=opts;
+    body='<div class="opts">'+opts.map(o=>
+      '<button class="opt" data-o="'+esc(o)+'">'+esc(o)+'</button>').join("")+'</div>';
+  } else if(fmt==="recognition"){
+    const opts=shuffle([q.answer].concat(distractors(q,3)));
+    R.opts=opts;
+    body='<div class="opts">'+opts.map(o=>
+      '<button class="opt" data-o="'+esc(o)+'">'+esc(o)+'</button>').join("")+'</div>';
+  } else if(String(q.answer).indexOf(";")>=0 && q.type!=="list"){
+    const n=String(q.answer).split(";").length;
+    body='<div class="fills">'+Array.from({length:n},(_,i)=>
+      '<div class="fl"><span class="fn">'+(i+1)+'.</span>'+
+      '<input class="field ansin" data-i="'+i+'" autocomplete="off" '+
+      'autocorrect="off" autocapitalize="off" spellcheck="false"></div>').join("")+'</div>';
+  } else {
+    body='<input class="field ansin" id="ans" autocomplete="off" autocorrect="off" '+
+      'autocapitalize="off" spellcheck="false" placeholder="'+
+      (q.type==="list"?"Separate with commas":"Type your answer")+'">';
+  }
+
+  const badges=[]
+    .concat(bonus?['<span class="badge b-bonus">Bonus · 5 pts</span>']:[])
+    .concat(fmt==="speed"?['<span class="badge b-speed">Speed</span>']:[])
+    .concat(fmt==="recognition"?['<span class="badge b-recog">Warm-up</span>']:[])
+    .concat(['<span class="badge">Ch '+q.chapter+'</span>'])
+    .concat(q.source==="predicted"?['<span class="badge">Predicted</span>']:[]);
+
+  window.scrollTo(0,0);
+  el("screen").innerHTML=
+   '<div class="screen wrap"><div id="roundtop"><div class="row">'+
+     '<button class="xbtn" id="quit">×</button>'+
+     '<div class="pbar"><i style="width:'+(R.i/total*100)+'%"></i></div>'+
+     (fmt==="speed"?'<span class="timer" id="tmr">15</span>':
+       '<span class="timer" style="color:var(--ink3)">'+(R.i+1)+'/'+total+'</span>')+
+   '</div></div>'+
+   '<div class="qhead">'+badges.join("")+'</div>'+
+   '<div class="qtext">'+qhtml(q)+'</div>'+ body +
+   '<div id="rvz"></div>'+
+   '<div class="sp"></div><button class="btn primary" id="check">Check</button></div>';
+
+  el("quit").onclick=()=>{ if(R.i===0||confirm("Leave this round?")) { clearSnap(); R=null; scrMap(); } };
+  const check=el("check");
+  document.querySelectorAll(".opt").forEach(b=> b.onclick=()=>{
+    if(R.answered) return;
+    R.picked=b.getAttribute("data-o");
+    document.querySelectorAll(".opt").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  });
+  const first=$(".ansin");
+  if(first){ setTimeout(()=>{ if(document.contains(first)) first.focus(); },90);
+    document.querySelectorAll(".ansin").forEach((inp,i,arr)=>{
+      inp.onkeydown=(e)=>{ if(e.key==="Enter"){ e.preventDefault();
+        if(i<arr.length-1) arr[i+1].focus(); else submit(false); }; };
+    }); }
+  check.onclick=()=>submit(false);
+  if(fmt==="speed") runTimer(15);
+}
+function qhtml(q){
+  let t=esc(q.question).replace(/_{2,}/g,'<span class="blank">______</span>');
+  return t;
+}
+function runTimer(sec){
+  const n=el("tmr"); if(!n) return;
+  clearInterval(R._t); let left=sec; n.textContent=left;
+  R._t=setInterval(()=>{
+    left--; if(n) n.textContent=left;
+    if(left<=0){ clearInterval(R._t); if(!R.answered) submit(true); }
+  },1000);
+}
+function readAnswer(){
+  if(R.fmt==="tf"||R.fmt==="mc"||R.fmt==="recognition") return R.picked||"";
+  const ins=document.querySelectorAll(".ansin");
+  if(ins.length>1) return [...ins].map(i=>i.value.trim()).join(";");
+  return ins.length?ins[0].value:"";
+}
+function submit(timeout){
+  if(R.answered) return;
+  const q=curQ();
+  const val=readAnswer();
+  if(!timeout && !String(val).replace(/;/g,"").trim()){
+    const f=$(".ansin")||$(".opts");
+    if(f){ f.classList.add("shake"); setTimeout(()=>f.classList.remove("shake"),360); }
+    toast("Type an answer, or tap a choice"); return;
+  }
+  clearInterval(R._t);
+  R.answered=true;
+  let g = timeout ? {verdict:"wrong",missed:[],score:0} : grade(q,val);
+  // Recognition/MC is an exact pick, so grade it as such
+  if(R.fmt==="recognition"||R.fmt==="mc")
+    g = {verdict: norm(R.picked)===norm(q.answer)?"correct":"wrong", missed:[], score:
+      norm(R.picked)===norm(q.answer)?1:0};
+  applyResult(q,g,val,timeout);
+}
+function applyResult(q,g,val,timeout){
+  const r=rec(q.id); const wasBox=r.box; const hadMissed=r.wrong>0;
+  r.seen++; r.last=todayKey();
+  const ok = g.verdict==="correct";
+  if(ok){ r.right++; r.box=clamp((r.box||0)+1,1,5); }
+  else  { r.wrong++; r.box=1; }
+
+  const pts = ok?5:(g.verdict==="partial"?3:0);
+  if(isBonus()) R.bonusEarned+=pts; else { R.earned+=pts; R.possible+=5; }
+  if(ok){ R.right++; R.streak++; R.bestStreak=Math.max(R.bestStreak,R.streak);
+          if(R.streak>=2) bumpQuest("streak10",0); }
+  else  { if(g.verdict==="partial") R.partial++; else R.wrong++; R.streak=0; }
+  if(R.streak>0) { const s=P.quests.daily.find(x=>x.id==="streak10");
+    if(s && !s.done){ s.progress=Math.max(s.progress,R.streak);
+      if(s.progress>=s.target){ s.done=true; addXp(s.reward);
+        toast("✅ Quest complete: "+s.label+"  +"+s.reward+" XP"); } } }
+
+  let xp = ok?10:(g.verdict==="partial"?4:2);   // never zero — effort counts
+  if(R.fmt==="speed"&&ok) xp+=5;
+  if(isBonus()&&ok) xp+=5;
+  addXp(xp);
+  bumpQuest("answer15"); bumpQuest("answer80");
+  if(ok && hadMissed && wasBox<=1){ bumpQuest("trouble3"); award("comeback"); }
+  if(ok && R.fmt==="speed"){ P.speedWins=(P.speedWins||0)+1;
+    if(P.speedWins>=10) award("speed"); }
+
+  R.review.push({q:q, verdict:g.verdict, given:val, missed:g.missed, timeout:!!timeout});
+  R.i0snap=R.i+1; saveSnap();
+  ok?sndOk():sndNo();
+  markOptions(q,ok);
+  showVerdict(q,g,val,timeout,xp);
+  saveP(P);
+}
+function markOptions(q,ok){
+  document.querySelectorAll(".opt").forEach(b=>{
+    const v=b.getAttribute("data-o");
+    if(norm(v)===norm(q.answer)) b.classList.add("right");
+    else if(v===R.picked && !ok) b.classList.add("wrongpick");
+    b.disabled=true;
+  });
+  document.querySelectorAll(".ansin").forEach(i=>i.disabled=true);
+  const c=el("check"); if(c) c.style.display="none";
+}
+function showVerdict(q,g,val,timeout,xp){
+  const ok=g.verdict==="correct";
+  if(ok) R.ovrLocked=false;         // an honest machine-graded correct unlocks the claim link
+  const heads = ok
+    ? ["Yes!","Exactly.","Got it.","That's the one.","Nice."]
+    : (timeout?["Time's up."]:["Not quite.","Close — here it is.","Almost."]);
+  const head = heads[Math.floor(Math.random()*heads.length)];
+  const alt=(q.accept&&q.accept.length)?
+    '<div class="vmiss">Also fine: '+esc(q.accept.slice(0,3).join(" · "))+'</div>':"";
+  const miss=(g.missed&&g.missed.length && g.verdict!=="correct")?
+    '<div class="vmiss">Still missing: <b>'+esc(g.missed.join(", "))+'</b></div>':"";
+  const note=q.notes?'<div class="vnote">'+esc(q.notes)+'</div>':"";
+  const src=q.page?'<div class="vsrc">The Story of Christianity, p. '+esc(q.page)+'</div>':"";
+  const ovr = ok
+    ? '<button class="ovrlink" id="ovr">Actually, I was wrong</button>'
+    : (R.ovrLocked ? "" : '<button class="ovrlink" id="ovr">My answer was right ✋</button>');
+  const rz=el("rvz");
+  rz.innerHTML='<div class="reviewcard '+(ok?"ok":"no")+'">'+
+    '<div class="vhead">'+(ok?"✓":"○")+' '+head+'<span class="vxp">+'+xp+' XP</span></div>'+
+    '<div class="vanslabel">'+(ok?"Answer":"The answer is")+'</div>'+
+    '<div class="vansbig">'+esc(q.answer)+'</div>'+
+    alt+miss+note+src+ovr+'</div>';
+  const v=el("verdict"); v.className = ok?"ok up":"no up";
+  el("verdictBody").innerHTML=
+    '<button class="btn '+(ok?"go":"primary")+'" id="next">'+
+      (R.i>=allRound().length-1?"See results":"Continue")+'</button>';
+  el("next").onclick=()=>{ R.i++; drawQ(); };
+  const ob=el("ovr"); if(ob) ob.onclick=()=>overrule(q,ok);
+  setTimeout(()=>{ if(document.contains(rz)) rz.scrollIntoView({behavior:"smooth",block:"nearest"}); },60);
+}
+/* The grader will get things wrong. One tap fixes it and re-scores. */
+function overrule(q,wasOk){
+  const r=rec(q.id);
+  if(wasOk){
+    r.right=Math.max(0,r.right-1); r.wrong++; r.box=1;
+    R.right=Math.max(0,R.right-1); R.wrong++;
+    if(isBonus()) R.bonusEarned=Math.max(0,R.bonusEarned-5); else R.earned=Math.max(0,R.earned-5);
+    addXp(-6);
+  }else{
+    r.wrong=Math.max(0,r.wrong-1); r.right++; r.box=clamp(r.box+1,1,5);
+    const last=R.review[R.review.length-1];
+    if(last&&last.verdict!=="correct"){ if(last.verdict==="partial") R.partial--; else R.wrong--; }
+    R.right++;
+    if(isBonus()) R.bonusEarned+=5; else R.earned+=5;
+    addXp(6);
+    R.ovrLocked=true;   // one claim per streak — unlocks after the next machine-graded correct
+  }
+  const last=R.review[R.review.length-1];
+  if(last) last.verdict = wasOk?"wrong":"correct";
+  saveP(P);
+  toast(wasOk?"Marked wrong — it'll come back":"Marked right — nice catch");
+  R.i++; drawQ();
+}
+function hideVerdict(){ el("verdict").className=""; }
+
+function finishRound(){
+  clearInterval(R._t); hideVerdict(); clearSnap();
+  touchDay(); bumpQuest("round1");
+  if(R.mode==="mock") bumpQuest("mock1");
+  chaptersWith(null).forEach(c=>{ if(mastery(c)>=0.8) bumpQuest("master1"); });
+  chaptersWith(null).forEach(c=>{ if(mastery(c)>=0.999) award("scholar"); });
+  award("first");
+  const total=R.right+R.wrong+R.partial;
+  const pctMain = R.possible? Math.round((R.earned+R.bonusEarned)/R.possible*100) : 0;
+  if(R.graded && R.wrong===0 && R.partial===0) award("perfect");
+  if(R.wrong===0 && total>=6 && (R.chapter===5||R.chapter===6)) award("martyr");
+  P.history.push({d:todayKey(),mode:R.mode,right:R.right,total:total,pct:pctMain});
+  P.history=P.history.slice(-60);
+  saveP(P);
+
+  const acc = total?Math.round(R.right/total*100):0;
+  const graded=R.graded;
+  const head = graded
+    ? '<div class="scorebig"><div class="pct">'+pctMain+'%</div>'+
+      '<div class="pts">'+(R.earned+R.bonusEarned)+' / '+R.possible+' points'+
+      (R.bonusEarned?'  (includes '+R.bonusEarned+' bonus)':'')+'</div>'+
+      '<div class="cmp">'+compareLine(pctMain)+'</div></div>'
+    : '<div class="scorebig"><div class="pct">'+acc+'%</div>'+
+      '<div class="pts">'+R.right+' of '+total+' correct</div></div>';
+
+  topbar(true);
+  render(head+
+    '<div class="statgrid">'+
+      '<div class="stat"><div class="n">'+R.right+'</div><div class="l">Right</div></div>'+
+      '<div class="stat"><div class="n">'+(R.wrong+R.partial)+'</div><div class="l">To review</div></div>'+
+      '<div class="stat"><div class="n">'+R.bestStreak+'</div><div class="l">Best run</div></div>'+
+    '</div>'+
+    (R.review.some(r=>r.verdict!=="correct")
+      ? '<div class="sec-title">Worth another look</div><div class="card tight">'+
+        R.review.filter(r=>r.verdict!=="correct").map(r=>
+          '<div class="revrow"><span class="mk">'+(r.verdict==="partial"?"◐":"○")+'</span>'+
+          '<span><span class="rq">'+esc(r.q.question.replace(/^T or F:\s*/,""))+'</span>'+
+          '<span class="ra">'+esc(r.q.answer)+'</span></span></div>').join("")+'</div>'
+      : '<div class="card center"><div style="font-size:34px">🎉</div>'+
+        '<div style="font-weight:700;margin-top:6px">Clean sweep — nothing to review.</div></div>')+
+    '<div class="sp"></div>'+
+    (R.review.some(r=>r.verdict!=="correct")
+      ? '<button class="btn go" id="again">Retry the '+
+        R.review.filter(r=>r.verdict!=="correct").length+' you missed</button>':"")+
+    '<button class="btn primary" id="home">Back to the map</button>');
+
+  const missed=R.review.filter(r=>r.verdict!=="correct").map(r=>r.q);
+  if(el("again")) el("again").onclick=()=>startRound({title:"Second look",questions:missed,mode:"retry"});
+  el("home").onclick=()=>{ const keep=R; R=null; flushCelebs(scrMap); };
+  if(!celebQ.length){} else flushCelebs(null);
+}
+function compareLine(pct){
+  const past=[42,66,84];
+  const best=Math.max.apply(null,past);
+  if(pct>best) return "That would be your best quiz score yet — past best was "+best+"%.";
+  if(pct>=84) return "Right in line with your last quiz (84%).";
+  if(pct>=66) return "Better than Quiz 2 (66%). Keep pushing.";
+  return "Below your recent quizzes — worth another round.";
+}
+
+/* ================================================================== MATCH */
+function startMatch(chapter){
+  const pool=QUESTIONS.filter(q=>q.chapter===chapter && q.type!=="tf" &&
+    String(q.answer).length<44);
+  const picks=sample(pool,5);
+  if(picks.length<3){ toast("Not enough short questions in that chapter"); return; }
+  const left=shuffle(picks), right=shuffle(picks);
+  let sel=null, done=0, wrong=0; const t0=Date.now();
+  topbar(false);
+  render('<div id="roundtop"><div class="row"><button class="xbtn" id="quit">×</button>'+
+    '<div class="pbar"><i id="mp" style="width:0%"></i></div>'+
+    '<span class="timer" id="mt">0s</span></div></div>'+
+    '<div class="qhead"><span class="badge">Ch '+chapter+'</span>'+
+    '<span class="badge b-recog">Match</span></div>'+
+    '<div class="matchgrid">'+
+      '<div id="colL">'+left.map(q=>'<button class="mtile" data-side="L" data-id="'+q.id+'">'+
+        esc(q.question.replace(/^T or F:\s*/,"")).slice(0,90)+'</button>').join("")+'</div>'+
+      '<div id="colR">'+right.map(q=>'<button class="mtile" data-side="R" data-id="'+q.id+'">'+
+        esc(q.answer)+'</button>').join("")+'</div>'+
+    '</div>');
+  const tick=setInterval(()=>{ const n=el("mt");
+    if(n) n.textContent=Math.round((Date.now()-t0)/1000)+"s"; },500);
+  el("quit").onclick=()=>{ clearInterval(tick); scrMap(); };
+  document.querySelectorAll(".mtile").forEach(b=> b.onclick=()=>{
+    if(b.classList.contains("gone")) return;
+    if(!sel){ sel=b; b.setAttribute("aria-pressed","true"); return; }
+    if(sel===b){ sel=null; b.setAttribute("aria-pressed","false"); return; }
+    if(sel.getAttribute("data-side")===b.getAttribute("data-side")){
+      sel.setAttribute("aria-pressed","false"); sel=b; b.setAttribute("aria-pressed","true"); return; }
+    const a=sel; sel=null; a.setAttribute("aria-pressed","false");
+    if(a.getAttribute("data-id")===b.getAttribute("data-id")){
+      a.classList.add("gone"); b.classList.add("gone"); done++; sndOk();
+      const r=rec(a.getAttribute("data-id")); r.seen++; r.right++; r.last=todayKey();
+      r.box=clamp((r.box||0)+1,1,5);
+      el("mp").style.width=(done/left.length*100)+"%";
+      addXp(6); bumpQuest("answer15"); bumpQuest("answer80");
+      if(done===left.length){
+        clearInterval(tick); touchDay(); bumpQuest("round1");
+        if(!wrong) award("matcher");
+        saveP(P);
+        setTimeout(()=>{
+          topbar(true);
+          render('<div class="scorebig"><div class="pct">'+Math.round((Date.now()-t0)/1000)+'s'+
+            '</div><div class="pts">'+left.length+' pairs · '+wrong+' misses</div></div>'+
+            '<button class="btn go" id="again">Another chapter</button>'+
+            '<button class="btn primary" id="home">Back to the map</button>');
+          el("again").onclick=scrMatchSetup;
+          el("home").onclick=()=>flushCelebs(scrMap);
+        },420);
+      }
+    } else {
+      wrong++; sndNo();
+      [a,b].forEach(x=>{ x.classList.add("bad"); setTimeout(()=>x.classList.remove("bad"),420); });
+      const r=rec(a.getAttribute("data-id")); r.box=1; r.wrong++; saveP(P);
+    }
+  });
+}
+
+/* ================================================================== ADMIN */
+function scrAdmin(){
+  topbar(false);
+  const cov=CHAPTERS.map(c=>{
+    const a=QUESTIONS.filter(q=>q.chapter===c.n&&q.source==="actual").length;
+    const p=QUESTIONS.filter(q=>q.chapter===c.n&&q.source==="predicted").length;
+    const hit=QUESTIONS.filter(q=>q.chapter===c.n&&q.predictedHit).length;
+    return {c:c, a:a, p:p, hit:hit};
+  });
+  render('<div class="sec-title">Admin</div>'+
+   '<div class="card tight adm"><b>Bank:</b> '+QUESTIONS.length+' questions · '+
+     actualQs().length+' actual · '+predictedQs().length+' predicted · '+
+     extras().length+' added here</div>'+
+   '<div class="sec-title">Chapter coverage</div><div class="card tight">'+
+     '<table class="tbl"><tr><th>Ch</th><th>Title</th><th>Actual</th><th>Pred.</th>'+
+     '<th>Hit rate</th></tr>'+
+     cov.map(r=>'<tr><td>'+r.c.n+'</td><td>'+esc(r.c.t)+'</td>'+
+       '<td>'+(r.a||'<span class="no">0</span>')+'</td>'+
+       '<td>'+(r.p||'<span class="no">0</span>')+'</td>'+
+       '<td>'+(r.p?(r.hit+"/"+r.p):"—")+'</td></tr>').join("")+'</table>'+
+     '<div class="muted" style="margin-top:9px;font-size:12px">Hit rate = predicted questions '+
+     'that turned out to appear on the real quiz. Mark them with <code>predictedHit</code> '+
+     'when you transcribe a new quiz.</div></div>'+
+
+   '<div class="sec-title">Add a question</div><div class="card adm">'+
+     '<div class="two"><div><label>Quiz #</label><input class="field" id="aQuiz" placeholder="4"></div>'+
+     '<div><label>Chapter</label><input class="field" id="aChap" placeholder="8"></div></div>'+
+     '<label>Type</label><select id="aType">'+
+       ["short","tf","fill","define","mc","list"].map(t=>'<option>'+t+'</option>').join("")+'</select>'+
+     '<label>Question</label><textarea id="aQ" style="min-height:76px"></textarea>'+
+     '<label>Answer</label><textarea id="aA" style="min-height:56px"></textarea>'+
+     '<label>Also accept (one per line)</label><textarea id="aAcc" style="min-height:52px"></textarea>'+
+     '<label>Keywords for long answers (one per line)</label>'+
+       '<textarea id="aKw" style="min-height:52px"></textarea>'+
+     '<label>Teacher note / what was missed</label><textarea id="aN" style="min-height:46px"></textarea>'+
+     '<div class="two"><div><label>Page</label><input class="field" id="aPg" placeholder="63"></div>'+
+     '<div><label>Source</label><select id="aSrc"><option>actual</option><option>predicted</option>'+
+       '</select></div></div>'+
+     '<div class="cbrow"><label><input type="checkbox" id="aMiss"> Missed it</label>'+
+       '<label><input type="checkbox" id="aBon"> Bonus question</label></div>'+
+     '<div class="sp"></div><button class="btn go" id="aAdd">Add to bank</button></div>'+
+
+   '<div class="sec-title">Bulk paste (JSON array)</div><div class="card adm">'+
+     '<textarea id="bulk" placeholder=\'[{"id":"q4-01","quiz":4,"chapter":8,"source":"actual",'+
+       '"type":"short","question":"...","answer":"..."}]\'></textarea>'+
+     '<div class="sp"></div><button class="btn" id="bAdd">Import</button></div>'+
+
+   '<div class="sec-title">Export</div><div class="card adm">'+
+     '<div class="muted" style="font-family:var(--sans)">Writes the full merged bank. Save it over '+
+     '<code>quiz-bank.json</code> and run <code>build.py</code> to make additions permanent '+
+     'on every device.</div><div class="sp"></div>'+
+     '<div class="btn-row"><button class="btn" id="dl">Download</button>'+
+     '<button class="btn" id="cp">Copy</button></div>'+
+     (extras().length?'<div class="sp"></div><button class="btn ghost" id="clr">'+
+       'Discard the '+extras().length+' added here</button>':"")+'</div>'+
+
+   '<div class="sec-title">Checks</div><div class="card adm">'+
+     '<div class="btn-row"><button class="btn" id="tGrade">Grader self-test</button>'+
+     '<button class="btn" id="tMock">Quiz builder test</button></div>'+
+     '<div id="tOut"></div></div>'+
+   '<div class="sp"></div><button class="btn ghost" id="back">Back to the game</button>');
+
+  el("back").onclick=()=>{ P?scrMap():scrProfiles(); };
+  el("aAdd").onclick=()=>{
+    const lines=(s)=> s.split("\n").map(x=>x.trim()).filter(Boolean);
+    const q={ id:"x-"+uid(), type:el("aType").value, source:el("aSrc").value,
+      question:el("aQ").value.trim(), answer:el("aA").value.trim() };
+    if(!q.question||!q.answer){ toast("Question and answer are required"); return; }
+    if(el("aQuiz").value) q.quiz=+el("aQuiz").value;
+    if(el("aChap").value) q.chapter=+el("aChap").value;
+    if(el("aPg").value)   q.page=el("aPg").value.trim();
+    const acc=lines(el("aAcc").value); if(acc.length) q.accept=acc;
+    const kw=lines(el("aKw").value);   if(kw.length)  q.keywords=kw;
+    if(el("aN").value.trim()) q.notes=el("aN").value.trim();
+    if(el("aMiss").checked) q.missed=true;
+    if(el("aBon").checked)  q.bonus=true;
+    const e=extras(); e.push(q); write(NS+".extra",e); rebuild();
+    toast("Added — it's live in the game now"); scrAdmin();
+  };
+  el("bAdd").onclick=()=>{
+    let arr; try{ arr=JSON.parse(el("bulk").value); }catch(err){ toast("That isn't valid JSON"); return; }
+    if(!Array.isArray(arr)){ toast("Paste an array of questions"); return; }
+    const have=new Set(QUESTIONS.map(q=>q.id));
+    const add=arr.filter(q=>q&&q.question&&q.answer).map(q=>{
+      if(!q.id||have.has(q.id)) q.id="x-"+uid(); have.add(q.id); return q; });
+    const e=extras().concat(add); write(NS+".extra",e); rebuild();
+    toast("Imported "+add.length+" question"+(add.length===1?"":"s")); scrAdmin();
+  };
+  const payload=()=> JSON.stringify({meta:BANK.meta||{}, questions:QUESTIONS}, null, 2);
+  el("dl").onclick=()=>{
+    const b=new Blob([payload()],{type:"application/json"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(b);
+    a.download="quiz-bank.json"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  };
+  el("cp").onclick=()=>{
+    const t=payload();
+    if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>toast("Copied the full bank"),
+      ()=>fallbackCopy(t)); else fallbackCopy(t);
+  };
+  if(el("clr")) el("clr").onclick=()=>{ if(confirm("Discard questions added in this browser?")){
+    localStorage.removeItem(NS+".extra"); rebuild(); scrAdmin(); } };
+  el("tGrade").onclick=()=>{ el("tOut").innerHTML=graderReport(); };
+  el("tMock").onclick=()=>{ el("tOut").innerHTML=mockReport(); };
+}
+function fallbackCopy(t){
+  const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta);
+  ta.select(); try{ document.execCommand("copy"); toast("Copied"); }catch(e){ toast("Copy failed"); }
+  ta.remove();
+}
+
+/* ============================================================ SELF-TESTS */
+function typo(s){
+  const w=String(s).split(" "); let i=w.findIndex(x=>x.length>5);
+  if(i<0) i=0;
+  const t=w[i]||""; if(t.length<5) return s;
+  w[i]=t.slice(0,2)+t.slice(3);            // drop one letter
+  return w.join(" ");
+}
+function graderReport(){
+  const rows=[]; let pass=0, fail=0, fp=0;
+  QUESTIONS.forEach(q=>{
+    const trials=[{in:q.answer,want:true,lab:"exact"}];
+    (q.accept||[]).forEach(a=>trials.push({in:a,want:true,lab:"accept"}));
+    if(q.type!=="tf"&&q.type!=="mc") trials.push({in:typo(q.answer),want:true,lab:"typo"});
+    trials.push({in:"the roman senate of blue elephants",want:false,lab:"nonsense"});
+    trials.forEach(t=>{
+      const g=grade(q,t.in);
+      const ok = t.want ? g.verdict==="correct" : g.verdict!=="correct";
+      if(ok) pass++; else { if(t.want) fail++; else fp++;
+        rows.push('<tr><td>'+q.id+'</td><td>'+t.lab+'</td><td>'+esc(String(t.in).slice(0,40))+
+          '</td><td class="no">'+g.verdict+'</td></tr>'); }
+    });
+  });
+  return '<div class="sp"></div><div><b>'+pass+' passed</b>, <span class="'+(fail?"no":"ok")+'">'+
+    fail+' false negatives</span>, <span class="'+(fp?"no":"ok")+'">'+fp+' false positives</span></div>'+
+    (rows.length?'<table class="tbl"><tr><th>id</th><th>case</th><th>input</th><th>got</th></tr>'+
+      rows.slice(0,40).join("")+'</table>'+
+      (rows.length>40?'<div class="muted">…and '+(rows.length-40)+' more</div>':"")
+      :'<div class="ok">No failures.</div>');
+}
+function mockReport(){
+  const chs=chaptersWith(null);
+  if(chs.length<2) return '<div class="no">Need two covered chapters.</div>';
+  const pair=[chs[chs.length-2],chs[chs.length-1]];
+  let okMain=0, okBonus=0, okRecyc=0, okWeight=0; const N=50;
+  const last=quizNumbers().slice(-1)[0];
+  for(let i=0;i<N;i++){
+    const m=buildMock(pair);
+    if(m.main.length>=8) okMain++;
+    if(m.bonus.length>=2) okBonus++;
+    if(m.main.filter(q=>q.quiz===last).length>=2) okRecyc++;
+    const later=m.main.filter(q=>q.chapter===pair[1]).length/Math.max(1,m.main.length);
+    if(later>=0.5&&later<=0.9) okWeight++;
+  }
+  const row=(l,v)=>'<tr><td>'+l+'</td><td class="'+(v>=N*0.9?"ok":"no")+'">'+v+'/'+N+'</td></tr>';
+  return '<div class="sp"></div><table class="tbl">'+
+    row("Enough main questions",okMain)+row("3–4 bonus",okBonus)+
+    row("2+ recycled from Quiz "+last,okRecyc)+row("Chapter weighting 50–90%",okWeight)+
+    '</table><div class="muted">Chapters '+pair.join(" + ")+', '+N+' generated quizzes.</div>';
+}
+
+/* =================================================================== boot */
+rebuild();
+if(location.hash==="#admin"){ scrAdmin(); }
+else{
+  const a=read(NS+".active",null);
+  loadBoard();
+  storageCheck();
+  if(a && loadP(a)) enter(a); else scrProfiles();
+}
+/* Warn when this browser context can't keep progress safe. */
+function storageCheck(){
+  let works=true;
+  try{ localStorage.setItem(NS+".probe","1"); localStorage.removeItem(NS+".probe"); }
+  catch(e){ works=false; }
+  const ua=navigator.userAgent||"";
+  const inApp=/(FBAN|FBAV|Instagram|Line\/|wv\)|GSA\/|Claude)/i.test(ua) ||
+    (/(iPhone|iPad)/.test(ua) && !/Safari\//.test(ua));
+  if(!works){
+    banner("⚠️ This browser is blocking saved data — your progress will NOT survive "+
+      "closing this page. Open the link in regular Safari or Chrome instead.");
+  } else if(inApp && !read(NS+".inappWarned",false)){
+    write(NS+".inappWarned",true);
+    banner("💡 You're in an in-app browser, where progress can get wiped. For safe keeping: "+
+      "open this link in Safari and use Share → Add to Home Screen.");
+  }
+}
+function banner(msg){
+  const b=document.createElement("div");
+  b.style.cssText="position:fixed;top:0;left:0;right:0;z-index:70;background:var(--warmsoft);"+
+    "color:var(--ink);padding:12px 44px 12px 16px;font-size:13px;line-height:1.45;"+
+    "border-bottom:1px solid var(--line);box-shadow:var(--shadow-lift)";
+  b.textContent=msg;
+  const x=document.createElement("button");
+  x.textContent="×";
+  x.style.cssText="position:absolute;right:8px;top:8px;background:none;border:none;"+
+    "font-size:20px;color:var(--ink2);padding:4px 8px;cursor:pointer";
+  x.onclick=()=>b.remove();
+  b.appendChild(x); document.body.appendChild(b);
+}
+window.addEventListener("hashchange",()=>{ if(location.hash==="#admin") scrAdmin(); });
+window.TS={grade:grade,norm:norm,buildMock:buildMock,distractors:distractors,answerCat:answerCat,QUESTIONS:function(){return QUESTIONS;}};
+})();
+</script>
+</body>
+</html>
