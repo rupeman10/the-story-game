@@ -640,7 +640,7 @@ const BANK = {
 (function(){
 "use strict";
 
-const VERSION = "2.1.0";
+const VERSION = "2.2.0";
 const NS = "bibleGame.v1";
 
 /* ------------------------------------------------------------------ util */
@@ -1760,7 +1760,9 @@ function scrTestSetup(){
       actualQs().length+' of them.</div></div>'+
      '<div class="sec-title">What are you studying?</div>'+
      [{v:"all",ic:"📚",t:"Everything",s:"All "+actualQs().length+" real questions, weighted to your weak spots"},
-      {v:"trouble",ic:"🩹",t:"Just my trouble spots",s:"The ones you keep missing"}]
+      {v:"missed",ic:"🎯",t:"Missed on the real quizzes",s:
+        actualQs().filter(q=>q.missed).length+" questions that cost points on Quizzes 1\u20135 \u2014 10 at a time, random order"},
+      {v:"trouble",ic:"🩹",t:"Just my trouble spots",s:"The ones you keep missing in the game"}]
       .concat(qn.map(n=>({v:"q"+n,ic:"📄",t:"Quiz "+n,
         s:actualQs().filter(q=>q.quiz===n).length+" questions · chapters "+
           [...new Set(actualQs().filter(q=>q.quiz===n).map(q=>q.chapter))].join(", ")})))
@@ -1773,6 +1775,9 @@ function scrTestSetup(){
     el("back").onclick=scrMap;
     el("go").onclick=()=>{
       let pool=actualQs(), title="Test Study";
+      if(choice==="missed"){ pool=shuffle(actualQs().filter(q=>q.missed));
+        title="Real-quiz misses";
+        startRound({title:title, questions:pool.slice(0,10), mode:"test"}); return; }
       if(choice==="trouble"){ pool=troubleSpots(30).map(x=>x.q).filter(q=>q.source==="actual");
         title="Trouble spots";
         if(!pool.length){ toast("No trouble spots yet — try Everything"); return; } }
