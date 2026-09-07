@@ -640,7 +640,7 @@ const BANK = {
 (function(){
 "use strict";
 
-const VERSION = "2.2.0";
+const VERSION = "2.3.0";
 const NS = "bibleGame.v1";
 
 /* ------------------------------------------------------------------ util */
@@ -1759,7 +1759,7 @@ function scrTestSetup(){
      'has already asked, so this mode uses <b>only real past quiz questions</b> — '+
       actualQs().length+' of them.</div></div>'+
      '<div class="sec-title">What are you studying?</div>'+
-     [{v:"all",ic:"📚",t:"Everything",s:"All "+actualQs().length+" real questions, weighted to your weak spots"},
+     [{v:"all",ic:"📚",t:"Everything",s:"All "+actualQs().length+" real questions in one full run, random order"},
       {v:"missed",ic:"🎯",t:"Missed on the real quizzes",s:
         actualQs().filter(q=>q.missed).length+" questions that cost points on Quizzes 1\u20135 \u2014 10 at a time, random order"},
       {v:"trouble",ic:"🩹",t:"Just my trouble spots",s:"The ones you keep missing in the game"}]
@@ -1780,10 +1780,13 @@ function scrTestSetup(){
         startRound({title:title, questions:pool.slice(0,10), mode:"test"}); return; }
       if(choice==="trouble"){ pool=troubleSpots(30).map(x=>x.q).filter(q=>q.source==="actual");
         title="Trouble spots";
-        if(!pool.length){ toast("No trouble spots yet — try Everything"); return; } }
-      else if(choice!=="all"){ const n=+choice.slice(1);
+        if(!pool.length){ toast("No trouble spots yet — try Everything"); return; }
+        startRound({title:title, questions:pick(pool,12), mode:"test"}); return; }
+      if(choice!=="all"){ const n=+choice.slice(1);
         pool=actualQs().filter(q=>q.quiz===n); title="Quiz "+n; }
-      startRound({title:title, questions:pick(pool,12), mode:"test"});
+      // Quiz N = every question from that quiz; Everything = all real questions.
+      // Shuffled fresh each run, nothing sampled away.
+      startRound({title:title, questions:shuffle(pool.slice()), mode:"test"});
     };
   };
   draw();
