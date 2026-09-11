@@ -188,10 +188,11 @@ h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0;line-height:1.2}
 
 /* ---------------------------------------------------------------- setup */
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.chipbtn{padding:10px 14px;border-radius:999px;border:2px solid var(--line);
+.chipbtn{padding:8px 13px;border-radius:14px;border:2px solid var(--line);text-align:center;
   background:var(--surface);font-weight:650;font-size:14px}
 .chipbtn[aria-pressed="true"]{border-color:var(--gold);background:var(--goldsoft);color:var(--gold2)}
 .chipbtn:disabled{opacity:.4}
+.chipbtn .cp{display:block;font-size:9.5px;font-weight:650;opacity:.65;margin-top:1px;letter-spacing:.02em}
 .optrow{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid var(--line);
   border-radius:14px;background:var(--surface);margin-bottom:8px;width:100%;text-align:left}
 .optrow[aria-pressed="true"]{border-color:var(--gold);background:var(--goldsoft)}
@@ -639,16 +640,23 @@ const BANK = {
     {"id": "q7-01", "quiz": 7, "chapter": 9, "source": "actual", "type": "define", "question": "What does gnosis mean?", "answer": "Knowledge", "notes": "Fourth time he has asked this. It will never stop being worth 8 points.", "page": "70"},
     {"id": "q7-02", "quiz": 7, "chapter": 9, "source": "actual", "type": "tf", "question": "T or F: No one epistle in the New Testament addresses the entirety of theology or church doctrine.", "answer": "True", "notes": "Each epistle was prompted by a particular circumstance — none covers all doctrine.", "page": "83"},
     {"id": "q7-03", "quiz": 7, "chapter": 9, "source": "actual", "type": "tf", "question": "T or F: In the Epistles and in the writings of early church fathers it was common to write to address particular issues.", "answer": "True", "page": "83"},
-    {"id": "q7-04", "quiz": 7, "chapter": 9, "source": "actual", "type": "fill", "question": "Irenaeus was mentored by ____, who was mentored and trained by the Apostle John.", "answer": "Polycarp", "notes": "The chain: John → Polycarp → Irenaeus. Irenaeus heard Polycarp teach as a boy.", "page": "84-85", "pair": "irenaeus-chain"},
-    {"id": "q7-05", "quiz": 7, "chapter": 9, "source": "actual", "type": "fill", "question": "Irenaeus' occupation was that of a ____.", "answer": "pastor", "accept": ["bishop", "shepherd of his flock"], "notes": "Above all a PASTOR — a shepherd of his flock (bishop of Lyons). The book contrasts him with Clement, who was 'not a pastor... but a thinker.'", "page": "84-86"},
+    {"id": "q7-04", "quiz": 7, "chapter": 9, "source": "actual", "type": "fill", "question": "Irenaeus was mentored by ____, who was mentored and trained by the Apostle John.", "answer": "Polycarp", "notes": "The chain: John → Polycarp → Irenaeus. Irenaeus heard Polycarp teach as a boy.", "page": "84", "pair": "irenaeus-chain"},
+    {"id": "q7-05", "quiz": 7, "chapter": 9, "source": "actual", "type": "fill", "question": "Irenaeus' occupation was that of a ____.", "answer": "pastor", "accept": ["bishop", "shepherd of his flock"], "notes": "Above all a PASTOR — a shepherd of his flock (bishop of Lyons). The book contrasts him with Clement, who was 'not a pastor... but a thinker.'", "page": "84"},
     {"id": "q7-06", "quiz": 7, "chapter": 9, "source": "actual", "type": "tf", "question": "T or F: Irenaeus believed human beings were created by God to be free and responsible.", "answer": "True", "page": "84-85"},
-    {"id": "q7-07", "quiz": 7, "chapter": 9, "source": "actual", "type": "short", "question": "What is divinization, or how would we explain it based on the writings of Irenaeus?", "answer": "Redeemed humanity growing into ever greater communion with God — becoming more like the divine, a process that continues eternally", "keywords": ["communion", "divine", "growing"], "accept": ["growing closer to God forever", "becoming more like God"], "notes": "'From the very beginning the union of the human with the divine was the goal of history.'", "page": "86"},
+    {"id": "q7-07", "quiz": 7, "chapter": 9, "source": "actual", "type": "short", "question": "What is divinization, or how would we explain it based on the writings of Irenaeus?", "answer": "Redeemed humanity growing into ever greater communion with God — becoming more like the divine, a process that continues eternally", "keywords": ["communion", "divine", "growing"], "accept": ["growing closer to God forever", "becoming more like God"], "notes": "'From the very beginning the union of the human with the divine was the goal of history.'", "page": "85"},
     {"id": "q7-08", "quiz": 7, "chapter": 9, "source": "actual", "type": "fill", "question": "According to Clement, the study of Scripture leads to a discovery of the same truth the Greek ____ have known.", "answer": "philosophers", "notes": "'Philosophy was given to the Greeks just as the Law was given to the Jews.'", "page": "87"},
     {"id": "q7-09", "quiz": 7, "chapter": 9, "source": "actual", "type": "fill", "question": "According to Clement, those who are wise go beyond the ____ meaning of Scripture.", "answer": "literal", "notes": "The literal sense stands, but those content with it are 'like children content with milk.'", "page": "87-88"},
     {"id": "q7-10", "quiz": 7, "chapter": 9, "source": "actual", "type": "fill", "question": "Like Philo of Alexandria before him, or Origen after him, Clement embraced ____ical interpretation of Scripture.", "answer": "allegor", "accept": ["allegorical", "allegory"], "notes": "Allegorical — Scripture written 'in parables,' with deeper meanings under the surface.", "page": "87"},
-    {"id": "q7-b1", "quiz": 7, "chapter": 9, "source": "actual", "type": "short", "bonus": true, "question": "Name the work that Irenaeus wrote to address the errors of Gnosticism.", "answer": "Against Heresies", "accept": ["Adversus Haereses"], "page": "84-85"},
+    {"id": "q7-b1", "quiz": 7, "chapter": 9, "source": "actual", "type": "short", "bonus": true, "question": "Name the work that Irenaeus wrote to address the errors of Gnosticism.", "answer": "Against Heresies", "accept": ["Adversus Haereses"], "page": "84"},
     {"id": "q7-b2", "quiz": 7, "chapter": 9, "source": "actual", "type": "short", "bonus": true, "question": "Like Paul, who also wrote an Epistle to the Corinthians?", "answer": "Clement of Rome", "accept": ["Clement"], "notes": "Clement of Rome, late 1st century — addressing problems in the same church Paul had written to.", "page": "83"},
-    {"id": "q7-b3", "quiz": 7, "chapter": 9, "source": "actual", "type": "short", "bonus": true, "question": "What second century work deals mostly with the forgiveness of sins after baptism?", "answer": "The Shepherd of Hermas", "accept": ["Shepherd of Hermas", "Hermas"], "notes": "Written by a brother of the bishop of Rome.", "page": "83"}
+    {"id": "q7-b3", "quiz": 7, "chapter": 9, "source": "actual", "type": "short", "bonus": true, "question": "What second century work deals mostly with the forgiveness of sins after baptism?", "answer": "The Shepherd of Hermas", "accept": ["Shepherd of Hermas", "Hermas"], "notes": "Written by a brother of the bishop of Rome.", "page": "83"},
+    {"id": "p9-25", "chapter": 9, "source": "predicted", "type": "short", "page": "84", "question": "Irenaeus was a native of Asia Minor — probably what city?", "answer": "Smyrna", "notes": "Smyrna — Polycarp's city, which is HOW he became Polycarp's disciple. Born around the year 130."},
+    {"id": "p9-26", "chapter": 9, "source": "predicted", "type": "short", "page": "84", "question": "Irenaeus became bishop of what city, after Bishop Photinus perished in the persecution?", "answer": "Lyons", "accept": ["Lyon"], "notes": "He was away in Rome when the persecution hit; elected bishop of Lyons on his return. Served until his death, probably as a martyr, in 202."},
+    {"id": "p9-27", "chapter": 9, "source": "predicted", "type": "list", "page": "84", "question": "Only two of Irenaeus' works survive. Name them.", "answer": "Demonstration of Apostolic Preaching, and Against Heresies", "accept": ["Against Heresies and Demonstration of Apostolic Preaching"], "notes": "Against Heresies' full title: 'Exposure and Refutation of Knowledge Falsely So-Called.'"},
+    {"id": "p9-28", "chapter": 9, "source": "predicted", "type": "fill", "page": "85", "question": "Irenaeus: humankind is instructed by the 'two hands' of God — the ____ and the ____.", "answer": "Word; Holy Spirit", "notes": "The 'two hands of God' — the Word and the Spirit, at work from creation through Israel's history."},
+    {"id": "p9-29", "chapter": 9, "source": "predicted", "type": "tf", "page": "85", "question": "T or F: According to Irenaeus, the angels are above human beings permanently.", "answer": "False", "notes": "'Only provisionally' — like a tutor guiding a young prince, who will one day rule even the tutor."},
+    {"id": "p9-30", "chapter": 9, "source": "predicted", "type": "tf", "page": "85", "question": "T or F: According to Irenaeus, the incarnation was planned by God even before sin entered the world.", "answer": "True", "notes": "'The future incarnate Word was the model God followed in making humans' — sin ADDED the purpose of remedy; it didn't create the plan."},
+    {"id": "p9-31", "chapter": 9, "source": "predicted", "type": "short", "page": "85", "question": "At the fall, what did God curse — and what did God only punish?", "answer": "God cursed the serpent and the earth, but only punished the man and the woman", "keywords": ["serpent", "earth", "punish"], "bonus": true, "notes": "Curse vs. punish — from the very moment of the fall, God is working for human redemption."}
   ]
 };
 /* BANK:END */
@@ -661,7 +669,7 @@ const BANK = {
 (function(){
 "use strict";
 
-const VERSION = "2.6.0";
+const VERSION = "2.7.0";
 const NS = "bibleGame.v1";
 
 /* ------------------------------------------------------------------ util */
@@ -765,6 +773,38 @@ const CHAPTERS = [
     "313: the 'Edict of Milan' ended persecution; 324: Constantine became sole emperor"]}
 ];
 const chapTitle = (n)=>{ const c=CHAPTERS.find(c=>c.n===n); return c?c.t:("Chapter "+n); };
+
+/* Half-chapter prep: the teacher quizzes half-chapters ('9a'). Boundaries follow the
+   book's section seams (ch 9's is CONFIRMED by Quiz 6a's coverage); questions whose
+   pages straddle a boundary belong to both halves. */
+const HALVES = {9:88, 10:102, 11:113, 12:124};   // page where the "b" half starts
+const PAGES  = {6:[49,58],7:[59,68],8:[69,81],9:[83,96],10:[97,104],11:[105,117],12:[119,127]};
+function pageSpan(q){
+  const m=String(q.page||"").match(/(\d+)(?:\s*[-\u2013]\s*(\d+))?/);
+  return m ? [ +m[1], +(m[2]||m[1]) ] : null;
+}
+function parseTok(t){
+  const m=String(t).match(/^(\d+)([ab])?$/);
+  return m ? {ch:+m[1], half:m[2]||null} : {ch:+t, half:null};
+}
+function inHalf(q,ch,half){
+  if(q.chapter!==ch) return false;
+  const b=HALVES[ch]; if(!b||!half) return true;
+  const sp=pageSpan(q); if(!sp) return true;         // unpaged: available to both halves
+  return half==="a" ? sp[0]<b : sp[1]>=b;            // straddlers land in both
+}
+function tokLabel(t){
+  const e=parseTok(t); const p=PAGES[e.ch]; if(!p) return String(t);
+  const b=HALVES[e.ch];
+  const range = !e.half ? p : (e.half==="a" ? [p[0], b-1] : [b, p[1]]);
+  return t+" (pp. "+range[0]+"\u2013"+range[1]+")";
+}
+function tokPages(t){
+  const e=parseTok(t); const p=PAGES[e.ch]; if(!p) return "";
+  const b=HALVES[e.ch];
+  const r = !e.half ? p : (e.half==="a" ? [p[0], b-1] : [b, p[1]]);
+  return "pp. "+r[0]+"\u2013"+r[1];
+}
 
 const LEVELS = [
   {xp:0,     t:"Catechumen"},   {xp:120,  t:"Hearer"},
@@ -1103,9 +1143,10 @@ function pick(pool, n){
 
 /* Mock quiz assembled from the teacher's documented habits (CLAUDE.md). */
 const TYPE_MIX = {short:0.65, fill:0.12, tf:0.10, define:0.07, list:0.03, mc:0.03};
-function buildMock(chapters){
-  const chs = chapters.slice().sort((a,b)=>a-b);
-  const inCh = (q)=> chs.indexOf(q.chapter)>=0;
+function buildMock(tokens){
+  const entries = tokens.map(parseTok);
+  const chs = [...new Set(entries.map(e=>e.ch))].sort((a,b)=>a-b);
+  const inCh = (q)=> entries.some(e=>inHalf(q,e.ch,e.half));
   const pool = QUESTIONS.filter(q=> inCh(q) && !q.bonus);
   const bonusPool = QUESTIONS.filter(q=> inCh(q) && (q.bonus || q.type==="define"));
   const nMain = clamp(15+Math.floor(Math.random()*5), 8, Math.max(8,pool.length));
@@ -1816,37 +1857,45 @@ function scrTestSetup(){
 function scrPredSetup(){
   const avail=chaptersWith(null);
   let sel=[];
-  const recent=avail.slice(-2);
-  sel=recent.slice();
   const draw=()=>{
-    const n=QUESTIONS.filter(q=>sel.indexOf(q.chapter)>=0).length;
+    const entries=sel.map(parseTok);
+    const n=QUESTIONS.filter(q=>entries.some(e=>inHalf(q,e.ch,e.half))).length;
+    const chip=(tok,label,pages,has,pressed)=>'<button class="chipbtn" data-c="'+tok+'"'+
+      ' aria-pressed="'+pressed+'"'+(has?"":" disabled")+'>'+label+(has?"":" 🔒")+
+      (pages&&has?'<span class="cp">'+pages+'</span>':"")+'</button>';
     render('<div class="sec-title">Quiz Predictor</div>'+
-     '<div class="card tight"><div class="muted">Pick the chapters your teacher announced. '+
-     'This builds a mock quiz in his style — about 17 questions plus bonus, with a couple '+
-     'recycled from the last quiz, because he does that every time.</div></div>'+
+     '<div class="card tight"><div class="muted">Pick what your teacher announced — whole '+
+     'chapters, or the half-chapters he has started quizzing ("9a"). The page range under '+
+     'each button is what that choice covers in the book.</div></div>'+
      '<div class="sec-title">Chapters</div><div class="chips">'+
        CHAPTERS.map(c=>{ const has=avail.indexOf(c.n)>=0;
-         return '<button class="chipbtn" data-c="'+c.n+'" aria-pressed="'+(sel.indexOf(c.n)>=0)+'"'+
-         (has?"":" disabled")+'>'+c.n+(has?"":" 🔒")+'</button>'; }).join("")+'</div>'+
+         if(HALVES[c.n]&&has){
+           return chip(c.n+"a", c.n+"a", tokPages(c.n+"a"), true, sel.indexOf(c.n+"a")>=0)+
+                  chip(c.n+"b", c.n+"b", tokPages(c.n+"b"), true, sel.indexOf(c.n+"b")>=0);
+         }
+         return chip(String(c.n), String(c.n), tokPages(String(c.n)), has,
+           sel.indexOf(String(c.n))>=0);
+       }).join("")+'</div>'+
      '<div class="muted" style="margin-top:10px">'+
-       (sel.length?sel.map(c=>chapTitle(c)).join(" · ")+" — "+n+" questions available"
-                  :"Choose at least one chapter")+'</div>'+
+       (sel.length? sel.map(tokLabel).join(" · ")+" — "+n+" questions available"
+                  :"Choose at least one chapter or half")+'</div>'+
      '<div class="sp"></div><button class="btn go" id="go"'+(sel.length?"":" disabled")+'>'+
        'Build my mock quiz</button>'+
      '<button class="btn ghost" id="back">Back</button>');
     document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{
-      const c=+b.getAttribute("data-c");
-      const i=sel.indexOf(c); if(i>=0) sel.splice(i,1); else sel.push(c);
-      sel.sort((a,b)=>a-b); draw(); });
+      const t=b.getAttribute("data-c");
+      const i=sel.indexOf(t); if(i>=0) sel.splice(i,1); else sel.push(t);
+      sel.sort(); draw(); });
     el("back").onclick=scrMap;
     el("go").onclick=()=>{
-      const chs=sel.slice();
-      readGate(chs, (function(){ const ok=chs.slice(); return ()=>conceptsGate(ok, ()=>{
-        const mk=buildMock(ok);
-        if(mk.main.length<4){ toast("Not enough questions for those chapters yet"); return; }
-        startRound({title:"Mock Quiz · Ch "+ok.join(", "), questions:mk.main, bonus:mk.bonus,
-          mode:"mock", chapters:ok, graded:true});
-      }); })());
+      const toks=sel.slice();
+      const chNums=[...new Set(toks.map(t=>parseTok(t).ch))];
+      readGate(chNums, ()=>conceptsGate(chNums, ()=>{
+        const mk=buildMock(toks);
+        if(mk.main.length<4){ toast("Not enough questions for that selection yet"); return; }
+        startRound({title:"Mock Quiz · "+toks.join(", "), questions:mk.main, bonus:mk.bonus,
+          mode:"mock", chapters:chNums, graded:true});
+      }));
     };
   };
   draw();
