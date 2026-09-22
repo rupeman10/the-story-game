@@ -715,7 +715,7 @@ const BANK = {
 (function(){
 "use strict";
 
-const VERSION = "3.0.0";
+const VERSION = "3.1.0";
 const NS = "bibleGame.v1";
 
 /* ------------------------------------------------------------------ util */
@@ -1934,6 +1934,8 @@ function scrPredSetup(){
                   :"Choose at least one chapter or half")+'</div>'+
      '<div class="sp"></div><button class="btn go" id="go"'+(sel.length?"":" disabled")+'>'+
        'Build my mock quiz</button>'+
+     '<button class="btn" id="goAll"'+(sel.length?"":" disabled")+'>'+
+       'Drill everything ('+n+' questions)</button>'+
      '<button class="btn ghost" id="back">Back</button>');
     document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{
       const t=b.getAttribute("data-c");
@@ -1948,6 +1950,19 @@ function scrPredSetup(){
         if(mk.main.length<4){ toast("Not enough questions for that selection yet"); return; }
         startRound({title:"Mock Quiz · "+toks.join(", "), questions:mk.main, bonus:mk.bonus,
           mode:"mock", chapters:chNums, graded:true});
+      }));
+    };
+    el("goAll").onclick=()=>{
+      const toks=sel.slice();
+      const entries=toks.map(parseTok);
+      const chNums=[...new Set(entries.map(e=>e.ch))];
+      readGate(chNums, ()=>conceptsGate(chNums, ()=>{
+        // every matching question — class-dictated material first, rest shuffled
+        const all=QUESTIONS.filter(q=>entries.some(e=>inHalf(q,e.ch,e.half)));
+        if(!all.length){ toast("Nothing matches that selection yet"); return; }
+        const deck=shuffle(all.filter(q=>q.hot)).concat(shuffle(all.filter(q=>!q.hot)));
+        startRound({title:"Full drill · "+toks.join(", "), questions:deck,
+          mode:"drill-all", chapters:chNums});
       }));
     };
   };
