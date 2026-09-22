@@ -185,6 +185,10 @@ h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0;line-height:1.2}
 .trouble .tq{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   color:var(--ink2)}
 .trouble .tb{font-size:11px;font-weight:800;color:var(--warm);flex:none}
+.bkrow{padding:11px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.bkrow:last-child{border-bottom:0}
+.bkq{font-size:14px;color:var(--ink)}
+.bka{margin-top:7px;font-size:14px}
 
 /* ---------------------------------------------------------------- setup */
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
@@ -711,7 +715,7 @@ const BANK = {
 (function(){
 "use strict";
 
-const VERSION = "2.9.0";
+const VERSION = "3.0.0";
 const NS = "bibleGame.v1";
 
 /* ------------------------------------------------------------------ util */
@@ -1544,7 +1548,8 @@ function scrMap(){
       '<h3>Quiz Predictor</h3><p>A mock quiz for the chapters your teacher announced.</p></button>'+
   '</div>'+
   '<div class="btn-row"><button class="btn" id="mMatch">🧩 Match</button>'+
-    '<button class="btn" id="mQuick">⚡ Quick 10</button></div>'+
+    '<button class="btn" id="mQuick">⚡ Quick 10</button>'+
+    '<button class="btn" id="mBank">📖 Bank</button></div>'+
 
   (tr.length?'<div class="sec-title">Trouble spots</div><div class="card tight">'+
     tr.map(x=>'<div class="trouble"><span class="tb">'+x.r.wrong+'✗</span>'+
@@ -1593,12 +1598,13 @@ function scrMap(){
   el("mMatch").onclick=scrMatchSetup;
   el("mQuick").onclick=()=>startRound({title:"Quick 10",
     questions:pick(actualQs(),10), mode:"quick"});
+  el("mBank").onclick=scrBank;
   if(el("drill")) el("drill").onclick=()=>startRound({title:"Trouble spots",
-    questions:troubleSpots(8).map(x=>x.q), mode:"drill"});
+    questions:troubleSpots(12).map(x=>x.q), mode:"drill"});
   document.querySelectorAll(".node[data-ch]").forEach(b=>{
     b.onclick=()=>{ const c=+b.getAttribute("data-ch");
       readGate([c], ()=>conceptsGate([c], ()=>
-        startRound({title:chapTitle(c), questions:pick(QUESTIONS.filter(q=>q.chapter===c),12),
+        startRound({title:chapTitle(c), questions:pick(QUESTIONS.filter(q=>q.chapter===c),16),
           mode:"chapter", chapter:c}))); };
   });
   document.querySelectorAll(".tag.keys").forEach(k=>{
@@ -1887,7 +1893,7 @@ function scrTestSetup(){
       let pool=actualQs(), title="Test Study";
       if(choice==="missed"){ pool=shuffle(actualQs().filter(q=>q.missed));
         title="Real-quiz misses";
-        startRound({title:title, questions:pool.slice(0,10), mode:"test"}); return; }
+        startRound({title:title, questions:pool.slice(0,12), mode:"test"}); return; }
       if(choice==="trouble"){ pool=troubleSpots(30).map(x=>x.q).filter(q=>q.source==="actual");
         title="Trouble spots";
         if(!pool.length){ toast("No trouble spots yet — try Everything"); return; }
@@ -1944,6 +1950,41 @@ function scrPredSetup(){
           mode:"mock", chapters:chNums, graded:true});
       }));
     };
+  };
+  draw();
+}
+/* ======================================================== BANK BROWSER
+   Tap-to-reveal reference of every question, by chapter — browsing is
+   itself a self-test. */
+function scrBank(){
+  const avail=chaptersWith(null);
+  let ch=avail[avail.length-1];
+  const draw=()=>{
+    const list=QUESTIONS.filter(q=>q.chapter===ch);
+    const nHot=list.filter(q=>q.hot).length;
+    render('<div class="sec-title">Question Bank</div>'+
+      '<div class="chips">'+avail.map(c=>'<button class="chipbtn" data-c="'+c+
+        '" aria-pressed="'+(c===ch)+'">'+c+'</button>').join("")+'</div>'+
+      '<div class="muted" style="margin:10px 0 4px">Ch '+ch+' — '+esc(chapTitle(ch))+
+        ' · '+list.length+' questions'+(nHot?(' · '+nHot+' from class dictation'):'')+
+        '. Tap a question to reveal its answer.</div>'+
+      '<div class="card tight">'+list.map((q,i)=>
+        '<div class="bkrow" data-i="'+i+'">'+
+          '<div class="bkq">'+esc(q.question)+
+            (q.bonus?' <span class="badge b-bonus">bonus</span>':'')+
+            (q.hot?' <span class="badge b-recog">class</span>':'')+'</div>'+
+          '<div class="bka" hidden><b>'+esc(String(q.answer))+'</b>'+
+            (q.accept?'<div class="muted" style="font-size:12px">also: '+esc(q.accept.join(" · "))+'</div>':'')+
+            (q.notes?'<div class="vnote" style="margin-top:6px">'+esc(q.notes)+'</div>':'')+
+            '<div class="vsrc" style="margin-top:5px">'+
+              (q.source==="actual"?("From a real quiz"+(q.page?(" · p. "+esc(q.page)):"")):
+               (q.page?("Predicted · p. "+esc(q.page)):"Predicted · lecture material"))+'</div>'+
+          '</div></div>').join("")+'</div>'+
+      '<div class="sp"></div><button class="btn ghost" id="back">Back</button>');
+    document.querySelectorAll(".chipbtn").forEach(b=>b.onclick=()=>{ ch=+b.getAttribute("data-c"); draw(); });
+    document.querySelectorAll(".bkrow").forEach(r=>r.onclick=()=>{
+      const a=r.querySelector(".bka"); a.hidden=!a.hidden; });
+    el("back").onclick=scrMap;
   };
   draw();
 }
@@ -2074,6 +2115,32 @@ function allRound(){ return R.list.concat(R.bonus); }
 function curQ(){ return allRound()[R.i]; }
 function isBonus(){ return R.i>=R.list.length; }
 
+/* Reverse drills: once a definition is known FORWARD (box 3+), sometimes flip
+   it — show the definition, ask for the term — so answers mean something
+   instead of being memorized one-way. Only clean parses reverse. */
+function termOf(q){
+  const t=String(q.question).trim();
+  const pats=[
+    /^what does ['"\u2018\u2019\u201c\u201d]?([\w -]{2,30}?)['"\u2018\u2019\u201c\u201d]? (?:originally )?mean\??$/i,
+    /^what did the word ['"\u2018\u2019\u201c\u201d]?([\w -]{2,30}?)['"\u2018\u2019\u201c\u201d]? (?:originally|initially) mean\??$/i,
+    /^define ([\w -]{2,30}?)[.:]?$/i,
+    /^what (?:is|was|were) (?:a |an |the )?['"\u2018\u2019\u201c\u201d]?([\w-]{3,24})['"\u2018\u2019\u201c\u201d]?\??$/i
+  ];
+  for(const p of pats){
+    const m=t.match(p);
+    if(m && m[1] && m[1].split(/\s+/).length<=3 && m[1].indexOf(",")<0) return m[1];
+  }
+  return null;
+}
+function reverseView(q){
+  const term=termOf(q); if(!term) return null;
+  const defn=String(q.answer).replace(/\s*\(.*?\)/g,"").trim();
+  if(!defn || norm(defn)===norm(term)) return null;
+  return Object.assign({},q,{
+    question:'Which term or word means: \u201c'+defn+'\u201d?',
+    answer:term, accept:[], keywords:null, _rev:true });
+}
+
 /* Interaction format rises with the Leitner box (playbook §7). */
 function formatFor(q){
   if(q.type==="tf") return "tf";
@@ -2090,11 +2157,19 @@ function formatFor(q){
 }
 function drawQ(){
   hideVerdict();
-  const q=curQ();
+  let q=curQ();
   if(!q){ finishRound(); return; }
   topbar(false);
   const total=allRound().length;
   const fmt=formatFor(q);
+  R.dispQ=null;
+  if(fmt==="recall" && !R.graded){
+    const r0=P.q[q.id];
+    if(r0 && r0.box>=3 && Math.random()<0.5){
+      const rv=reverseView(q);
+      if(rv){ q=rv; R.dispQ=rv; }
+    }
+  }
   R.fmt=fmt; R.answered=false; R.picked=null;
   const bonus=isBonus();
 
@@ -2128,6 +2203,7 @@ function drawQ(){
     .concat(bonus?['<span class="badge b-bonus">Bonus · 5 pts</span>']:[])
     .concat(fmt==="speed"?['<span class="badge b-speed">Speed</span>']:[])
     .concat(fmt==="recognition"?['<span class="badge b-recog">Warm-up</span>']:[])
+    .concat(R.dispQ?['<span class="badge b-speed">Reverse</span>']:[])
     .concat(['<span class="badge">Ch '+q.chapter+'</span>'])
     .concat(q.source==="predicted"?['<span class="badge">Predicted</span>']:[]);
 
@@ -2180,7 +2256,7 @@ function readAnswer(){
 }
 function submit(timeout){
   if(R.answered) return;
-  const q=curQ();
+  const q=R.dispQ||curQ();
   const val=readAnswer();
   if(!timeout && !String(val).replace(/;/g,"").trim()){
     const f=$(".ansin")||$(".opts");
@@ -2197,7 +2273,7 @@ function submit(timeout){
   applyResult(q,g,val,timeout);
 }
 function applyResult(q,g,val,timeout){
-  const r=rec(q.id); const wasBox=r.box; const hadMissed=r.wrong>0;
+  const r=rec(curQ().id); const wasBox=r.box; const hadMissed=r.wrong>0;
   r.seen++; r.last=todayKey();
   const ok = g.verdict==="correct";
   if(ok){ r.right++; r.box=clamp((r.box||0)+1,1,5); }
@@ -2615,7 +2691,7 @@ function banner(msg){
   b.appendChild(x); document.body.appendChild(b);
 }
 window.addEventListener("hashchange",()=>{ if(location.hash==="#admin") scrAdmin(); });
-window.TS={grade:grade,norm:norm,buildMock:buildMock,distractors:distractors,answerCat:answerCat,QUESTIONS:function(){return QUESTIONS;}};
+window.TS={grade:grade,norm:norm,buildMock:buildMock,distractors:distractors,answerCat:answerCat,termOf:termOf,reverseView:reverseView,QUESTIONS:function(){return QUESTIONS;}};
 })();
 </script>
 </body>
