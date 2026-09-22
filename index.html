@@ -715,7 +715,7 @@ const BANK = {
 (function(){
 "use strict";
 
-const VERSION = "3.1.0";
+const VERSION = "3.2.0";
 const NS = "bibleGame.v1";
 
 /* ------------------------------------------------------------------ util */
@@ -1918,8 +1918,9 @@ function scrPredSetup(){
       (pages&&has?'<span class="cp">'+pages+'</span>':"")+'</button>';
     render('<div class="sec-title">Quiz Predictor</div>'+
      '<div class="card tight"><div class="muted">Pick what your teacher announced — whole '+
-     'chapters, or the half-chapters he has started quizzing ("9a"). The page range under '+
-     'each button is what that choice covers in the book.</div></div>'+
+     'chapters, or half-chapters ("9a"); the page range under each button is what it covers '+
+     'in the book. Every Pre-Test deals the FULL question list: 1st pass is multiple '+
+     'choice, after that it\u2019s typed, and reverse drills mix in as you master it.</div></div>'+
      '<div class="sec-title">Chapters</div><div class="chips">'+
        CHAPTERS.map(c=>{ const has=avail.indexOf(c.n)>=0;
          if(HALVES[c.n]&&has){
@@ -1932,26 +1933,14 @@ function scrPredSetup(){
      '<div class="muted" style="margin-top:10px">'+
        (sel.length? sel.map(tokLabel).join(" · ")+" — "+n+" questions available"
                   :"Choose at least one chapter or half")+'</div>'+
-     '<div class="sp"></div><button class="btn go" id="go"'+(sel.length?"":" disabled")+'>'+
-       'Build my mock quiz</button>'+
-     '<button class="btn" id="goAll"'+(sel.length?"":" disabled")+'>'+
-       'Drill everything ('+n+' questions)</button>'+
+     '<div class="sp"></div><button class="btn go" id="goAll"'+(sel.length?"":" disabled")+'>'+
+       'Start Pre-Test ('+n+' questions)</button>'+
      '<button class="btn ghost" id="back">Back</button>');
     document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{
       const t=b.getAttribute("data-c");
       const i=sel.indexOf(t); if(i>=0) sel.splice(i,1); else sel.push(t);
       sel.sort(); draw(); });
     el("back").onclick=scrMap;
-    el("go").onclick=()=>{
-      const toks=sel.slice();
-      const chNums=[...new Set(toks.map(t=>parseTok(t).ch))];
-      readGate(chNums, ()=>conceptsGate(chNums, ()=>{
-        const mk=buildMock(toks);
-        if(mk.main.length<4){ toast("Not enough questions for that selection yet"); return; }
-        startRound({title:"Mock Quiz · "+toks.join(", "), questions:mk.main, bonus:mk.bonus,
-          mode:"mock", chapters:chNums, graded:true});
-      }));
-    };
     el("goAll").onclick=()=>{
       const toks=sel.slice();
       const entries=toks.map(parseTok);
@@ -1961,7 +1950,7 @@ function scrPredSetup(){
         const all=QUESTIONS.filter(q=>entries.some(e=>inHalf(q,e.ch,e.half)));
         if(!all.length){ toast("Nothing matches that selection yet"); return; }
         const deck=shuffle(all.filter(q=>q.hot)).concat(shuffle(all.filter(q=>!q.hot)));
-        startRound({title:"Full drill · "+toks.join(", "), questions:deck,
+        startRound({title:"Pre-Test · "+toks.join(", "), questions:deck,
           mode:"drill-all", chapters:chNums});
       }));
     };
@@ -2167,7 +2156,7 @@ function formatFor(q){
   // multiple choice only on a question's very first exposure; the teacher's
   // quizzes are written, so everything after that is typed recall
   if(!r || !r.seen) return "recognition";
-  if(box>=4 && Math.random()<0.5) return "speed";
+  if(box>=4 && Math.random()<0.5 && R.mode!=="drill-all") return "speed";
   return "recall";
 }
 function drawQ(){
