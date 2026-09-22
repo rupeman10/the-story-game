@@ -511,10 +511,10 @@ const BANK = {
     {"id": "p9-07", "chapter": 9, "source": "predicted", "type": "tf", "page": "87-88", "question": "T or F: Clement taught that scripture is written allegorically, 'in parables.'", "answer": "True"},
     {"id": "p9-08", "chapter": 9, "source": "predicted", "type": "short", "page": "88", "question": "Tertullian came from what North African city?", "answer": "Carthage"},
     {"id": "p9-09", "chapter": 9, "source": "predicted", "type": "short", "page": "89", "question": "In what treatise did Tertullian argue, like a lawyer, that heretics have no right to use the Bible at all?", "answer": "Prescription Against the Heretics", "accept": ["the Prescription"], "keywords": ["prescription", "heretics"]},
-    {"id": "p9-10", "chapter": 9, "source": "predicted", "type": "short", "page": "91", "question": "Around the year 207, Tertullian shocked the church by joining what movement?", "answer": "Montanism", "accept": ["the Montanists"]},
+    {"id": "p9-10", "chapter": 9, "source": "predicted", "type": "short", "page": "91", "question": "Around the year 207, Tertullian shocked the church by joining what movement?", "answer": "Montanism", "accept": ["the Montanists"], "predictedHit": true},
     {"id": "p9-11", "chapter": 9, "source": "predicted", "type": "short", "page": "91", "question": "Montanus claimed that he was possessed by what?", "answer": "The Holy Spirit"},
     {"id": "p9-12", "chapter": 9, "source": "predicted", "type": "short", "page": "91", "question": "Name one of the two women who prophesied alongside Montanus.", "answer": "Priscilla or Maximilla", "accept": ["Priscilla", "Maximilla"], "bonus": true},
-    {"id": "p9-13", "chapter": 9, "source": "predicted", "type": "fill", "page": "92-93", "question": "Tertullian coined the trinitarian formula: 'one ____ and three ____.'", "answer": "substance; persons"},
+    {"id": "p9-13", "chapter": 9, "source": "predicted", "type": "fill", "page": "92-93", "question": "Tertullian coined the trinitarian formula: 'one ____ and three ____.'", "answer": "substance; persons", "predictedHit": true},
     {"id": "p9-14", "chapter": 9, "source": "predicted", "type": "short", "page": "93", "question": "Tertullian was the first Christian theologian to write in what language?", "answer": "Latin", "notes": "That is why he is called the founder of Western theology."},
     {"id": "p9-15", "chapter": 9, "source": "predicted", "type": "short", "page": "93", "question": "How did Origen's mother stop him from running off to be martyred as a teenager?", "answer": "She hid his clothes", "bonus": true},
     {"id": "p9-16", "chapter": 9, "source": "predicted", "type": "short", "page": "93-94", "question": "What was the name of Origen's six-column edition of the Old Testament?", "answer": "The Hexapla"},
@@ -656,7 +656,18 @@ const BANK = {
     {"id": "p9-28", "chapter": 9, "source": "predicted", "type": "fill", "page": "85", "question": "Irenaeus: humankind is instructed by the 'two hands' of God — the ____ and the ____.", "answer": "Word; Holy Spirit", "notes": "The 'two hands of God' — the Word and the Spirit, at work from creation through Israel's history."},
     {"id": "p9-29", "chapter": 9, "source": "predicted", "type": "tf", "page": "85", "question": "T or F: According to Irenaeus, the angels are above human beings permanently.", "answer": "False", "notes": "'Only provisionally' — like a tutor guiding a young prince, who will one day rule even the tutor."},
     {"id": "p9-30", "chapter": 9, "source": "predicted", "type": "tf", "page": "85", "question": "T or F: According to Irenaeus, the incarnation was planned by God even before sin entered the world.", "answer": "True", "notes": "'The future incarnate Word was the model God followed in making humans' — sin ADDED the purpose of remedy; it didn't create the plan."},
-    {"id": "p9-31", "chapter": 9, "source": "predicted", "type": "short", "page": "85", "question": "At the fall, what did God curse — and what did God only punish?", "answer": "God cursed the serpent and the earth, but only punished the man and the woman", "keywords": ["serpent", "earth", "punish"], "bonus": true, "notes": "Curse vs. punish — from the very moment of the fall, God is working for human redemption."}
+    {"id": "p9-31", "chapter": 9, "source": "predicted", "type": "short", "page": "85", "question": "At the fall, what did God curse — and what did God only punish?", "answer": "God cursed the serpent and the earth, but only punished the man and the woman", "keywords": ["serpent", "earth", "punish"], "bonus": true, "notes": "Curse vs. punish — from the very moment of the fall, God is working for human redemption."},
+    {"id": "q8-01", "quiz": 8, "chapter": 9, "source": "actual", "type": "fill", "question": "Irenaeus' occupation was that of a ____.", "answer": "pastor", "accept": ["bishop"], "page": "84", "notes": "Recycled from Quiz 6a — the drilling held."},
+    {"id": "q8-02", "quiz": 8, "chapter": 9, "source": "actual", "type": "fill", "question": "According to Clement, those who are wise go beyond the ____ meaning of Scripture.", "answer": "literal", "page": "87-88", "notes": "Recycled from Quiz 6a — held."},
+    {"id": "q8-03", "quiz": 8, "chapter": 9, "source": "actual", "type": "short", "missed": true, "question": "What was Tertullian's occupation?", "answer": "A lawyer", "accept": ["lawyer", "trained in law", "trained in rhetoric"], "page": "89", "notes": "LAWYER — 'his entire literary output bears the stamp of a legal mind.' That's why his masterpiece is a legal 'prescription.'"},
+    {"id": "q8-04", "quiz": 8, "chapter": 9, "source": "actual", "type": "short", "missed": true, "question": "Who is the rightful owner of Scripture, according to Tertullian?", "answer": "The church", "accept": ["the Church"], "page": "89-90", "notes": "THE CHURCH — the point of Prescription Against the Heretics: long, undisputed possession makes the church Scripture's legal owner, so heretics have no right to argue from it. (Asked TWICE on this quiz.)"},
+    {"id": "q8-05", "quiz": 8, "chapter": 9, "source": "actual", "type": "fill", "missed": true, "question": "According to Tertullian, Christians should never engage in idle ____.", "answer": "speculation", "page": "90", "notes": "SPECULATION — once truth is found, stop searching; he condemned all speculation as the door to heresy. (Asked TWICE on this quiz.)"},
+    {"id": "q8-06", "quiz": 8, "chapter": 9, "source": "actual", "type": "short", "missed": true, "question": "Like Clement before him, which church theologian and philosopher adopted a primarily allegorical approach to interpreting Scripture?", "answer": "Origen", "page": "87,94", "notes": "ORIGEN — Clement's greatest disciple, same Alexandrian school. NOT Tertullian, who despised philosophy ('Miserable Aristotle!'). (Asked TWICE on this quiz.)"},
+    {"id": "q8-07", "quiz": 8, "chapter": 9, "source": "actual", "type": "define", "question": "What is modalism?", "answer": "The teaching that Father, Son, and Holy Spirit are just three modes in which one God appears — not three persons", "keywords": ["modes", "God"], "page": "92", "notes": "Modalism = the HERESY (one God wearing three masks). Don't confuse it with Tertullian's ANSWER to it: one substance, three persons."},
+    {"id": "q8-08", "quiz": 8, "chapter": 9, "source": "actual", "type": "short", "question": "Which heretical/false group did Tertullian eventually join?", "answer": "Montanism", "accept": ["the Montanists"], "page": "91"},
+    {"id": "q8-09", "quiz": 8, "chapter": 9, "source": "actual", "type": "fill", "missed": true, "question": "Origen's understanding of creation and the world actually reflected more of a ____ worldview rather than a Biblical worldview.", "answer": "Platonic", "accept": ["Platonist"], "page": "94-95", "notes": "PLATONIC — 'on many points Origen is more Platonist than Christian': preexistent souls, matter as the result of sin, the eternal cycle."},
+    {"id": "q8-b1", "quiz": 8, "chapter": 9, "source": "actual", "type": "short", "bonus": true, "missed": true, "question": "What was the Trinitarian formula Tertullian proposed that was later used in Church creeds?", "answer": "One substance and three persons", "keywords": ["substance", "persons"], "page": "92-93", "notes": "ONE SUBSTANCE, THREE PERSONS — Tertullian's fix FOR modalism, not modalism itself. Modalism = the disease; this formula = the cure."},
+    {"id": "q8-b2", "quiz": 8, "chapter": 9, "source": "actual", "type": "short", "bonus": true, "question": "What is the name given to the false doctrine or teaching that claims Father God suffered the passion?", "answer": "Patripassianism", "page": "92", "notes": "Patri (Father) + passion — 'the Father suffered.' Cousin of modalism, both from the Against Praxeas story."}
   ]
 };
 /* BANK:END */
@@ -669,7 +680,7 @@ const BANK = {
 (function(){
 "use strict";
 
-const VERSION = "2.7.0";
+const VERSION = "2.8.0";
 const NS = "bibleGame.v1";
 
 /* ------------------------------------------------------------------ util */
@@ -1826,7 +1837,7 @@ function scrTestSetup(){
         actualQs().filter(q=>q.missed).length+" questions that cost points on Quizzes 1\u20135 \u2014 10 at a time, random order"},
       {v:"trouble",ic:"🩹",t:"Just my trouble spots",s:"The ones you keep missing in the game"}]
       .concat(qn.map(n=>({v:"q"+n,ic:n===6?"📝":"📄",
-        t:({6:"Test 1 (Ch 1\u20138)",7:"Quiz 6a (Ch 9)"}[n]||"Quiz "+n),
+        t:({6:"Test 1 (Ch 1\u20138)",7:"Quiz 6a (Ch 9)",8:"Quiz 7 (Ch 9b)"}[n]||"Quiz "+n),
         s:actualQs().filter(q=>q.quiz===n).length+" questions · chapters "+
           [...new Set(actualQs().filter(q=>q.quiz===n).map(q=>q.chapter))].join(", ")})))
       .map(o=>'<button class="optrow" data-v="'+o.v+'" aria-pressed="'+(choice===o.v)+'">'+
