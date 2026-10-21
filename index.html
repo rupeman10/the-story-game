@@ -1155,7 +1155,7 @@ const BANK = {
 (function(){
 "use strict";
 
-const VERSION = "3.17.1";
+const VERSION = "3.18.0";
 const NS = "bibleGame.v1";
 
 /* ------------------------------------------------------------------ util */
@@ -2038,7 +2038,8 @@ function scrMap(){
   '<div class="btn-row"><button class="btn" id="mMatch">🧩 Match</button>'+
     '<button class="btn" id="mQuick">⚡ Quick 10</button>'+
     '<button class="btn" id="mBank">📖 Bank</button>'+
-    '<button class="btn" id="mMarks">🖍️ My marks</button></div>'+
+    '<button class="btn" id="mMarks">🖍️ My marks</button>'+
+    '<button class="btn" id="mPrint">🖨️ Print</button></div>'+
 
   (tr.length?'<div class="sec-title">Trouble spots</div><div class="card tight">'+
     tr.map(x=>'<div class="trouble"><span class="tb">'+x.r.wrong+'✗</span>'+
@@ -2089,6 +2090,7 @@ function scrMap(){
     questions:pick(actualQs(),10), mode:"quick"});
   el("mBank").onclick=scrBank;
   el("mMarks").onclick=scrMarks;
+  el("mPrint").onclick=scrPrint;
   if(el("drill")) el("drill").onclick=()=>startRound({title:"Trouble spots",
     questions:troubleSpots(12).map(x=>x.q), mode:"drill"});
   document.querySelectorAll(".node[data-ch]").forEach(b=>{
@@ -2586,6 +2588,75 @@ function scrMarks(){
     el("back").onclick=scrMap;
   };
   draw();
+}
+
+/* ==================================================== PRINTABLE STUDY GUIDE
+   Paper beats the phone. One clean page-set per chapter: key ideas, the
+   must-know facts, numbered practice questions, answer key at the end.
+   Only the three most recent chapters are offered. */
+function guideHTML(ch){
+  const title=chapTitle(ch);
+  const node=CHAPTERS.find(c=>c.n===ch);
+  const pg=PAGES[ch]?("pp. "+PAGES[ch][0]+"\u2013"+PAGES[ch][1]):"";
+  const inCh=QUESTIONS.filter(q=>q.chapter===ch);
+  const seen={};
+  const dedupe=q=>{ const k=q.vary||q.id; if(seen[k])return false; seen[k]=1; return true; };
+  const stmt=q=>{
+    const ans=esc(String(q.answer));
+    if(q.type==="fill" && /_{2,}/.test(q.question))
+      return esc(q.question).replace(/_{2,}/g,'<b>'+ans+'</b>');
+    if(q.type==="tf")
+      return esc(q.question.replace(/^T or F:\s*/i,""))+' \u2014 <b>'+ans+'</b>';
+    return esc(q.question)+' <b>'+ans+'</b>';
+  };
+  const must=inCh.filter(q=>q.must&&dedupe(q));
+  const hot=inCh.filter(q=>q.hot&&!q.must&&dedupe(q));
+  const practice=inCh.filter(q=>dedupe(q)||q.source==="actual").filter(q=>!q.bonus);
+  // practice set: every remaining fact once, actuals first
+  const pseen={}; const pQ=[];
+  inCh.filter(q=>!q.bonus).sort((a,b)=>(a.source==="actual"?0:1)-(b.source==="actual"?0:1))
+    .forEach(q=>{ const k=q.vary||q.id; if(!pseen[k]){ pseen[k]=1; pQ.push(q); } });
+  const qnum=pQ.map((q,i)=>'<li>'+esc(q.question)+'</li>').join("");
+  const akey=pQ.map((q,i)=>'<span class="ak"><b>'+(i+1)+'.</b> '+esc(String(q.answer))+'</span>').join(" ");
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Study Guide \u2014 Chapter '+ch+'</title>'+
+   '<style>'+
+   'body{font:12.5pt/1.5 Georgia,"Times New Roman",serif;color:#000;background:#fff;margin:24px 34px}'+
+   'h1{font-size:19pt;margin:0 0 2px} .pg{color:#444;font-size:10.5pt;margin:0 0 14px}'+
+   'h2{font-size:12pt;text-transform:uppercase;letter-spacing:.08em;border-bottom:1.5px solid #000;padding-bottom:3px;margin:18px 0 8px}'+
+   'ul,ol{margin:6px 0;padding-left:22px} li{margin:5px 0}'+
+   '.musts li{margin:7px 0} .ak{display:inline-block;margin-right:14px;font-size:10pt}'+
+   '.keybox{border:1.5px solid #000;padding:8px 12px;margin-top:10px;page-break-inside:avoid}'+
+   '.foot{margin-top:16px;font-size:9.5pt;color:#555}'+
+   '@media print{.noprint{display:none}}'+
+   '</style></head><body>'+
+   '<h1>Chapter '+ch+' \u2014 '+esc(title)+'</h1><div class="pg">'+pg+' \u00b7 The Story study guide \u00b7 printed from the game</div>'+
+   (node&&node.k?('<h2>Key ideas</h2><ul>'+node.k.map(k=>'<li>'+esc(k)+'</li>').join("")+'</ul>'):'')+
+   (must.length?('<h2>\u2605 Must know \u2014 double-underlined in class</h2><ul class="musts">'+
+     must.map(q=>'<li>'+stmt(q)+'</li>').join("")+'</ul>'):'')+
+   (hot.length?('<h2>Marked in class</h2><ul>'+hot.map(q=>'<li>'+stmt(q)+'</li>').join("")+'</ul>'):'')+
+   '<h2>Practice questions \u2014 cover the key, answer out loud or on paper</h2><ol>'+qnum+'</ol>'+
+   '<div class="keybox"><h2 style="border:none;margin:0 0 6px">Answer key</h2>'+akey+'</div>'+
+   '<div class="foot">Say each answer BEFORE checking \u2014 and for every term, ask yourself the reverse: given the answer, what was the question?</div>'+
+   '<div class="noprint" style="margin-top:14px"><button onclick="window.print()" style="font:inherit;padding:8px 14px">\ud83d\udda8\ufe0f Print</button></div>'+
+   '</body></html>';
+}
+function scrPrint(){
+  const avail=[...new Set(QUESTIONS.map(q=>q.chapter))].sort((a,b)=>a-b).slice(-3);
+  render('<div class="sec-title">Print a Study Guide</div>'+
+    '<div class="card tight"><div class="muted">One clean paper guide per chapter: the key ideas, '+
+    'the must-know facts, and numbered practice questions with the answer key at the bottom. '+
+    'Pick a chapter, then use your phone or computer\u2019s print screen (AirPrint works).</div></div>'+
+    '<div class="chips" style="margin-top:12px">'+avail.map(c=>
+      '<button class="chipbtn" data-c="'+c+'">Ch '+c+'</button>').join("")+'</div>'+
+    '<div class="sp"></div><button class="btn ghost" id="back">Back</button>');
+  document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{
+    const ch=+b.getAttribute("data-c");
+    const w=window.open("","_blank");
+    if(!w){ toast("Allow pop-ups to open the print view"); return; }
+    w.document.write(guideHTML(ch)); w.document.close();
+    setTimeout(()=>{ try{ w.print(); }catch(e){} }, 400);
+  });
+  el("back").onclick=scrMap;
 }
 function scrMatchSetup(){
   const avail=chaptersWith(null);
