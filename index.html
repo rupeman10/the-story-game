@@ -1155,7 +1155,7 @@ const BANK = {
 (function(){
 "use strict";
 
-const VERSION = "3.17.0";
+const VERSION = "3.17.1";
 const NS = "bibleGame.v1";
 
 /* ------------------------------------------------------------------ util */
@@ -1659,7 +1659,8 @@ function pick(pool, n){
     const r=P.q[q.id];
     let w = r ? (BOXW[clamp(r.box,0,5)]||1) : BOXW[0];
     if(q.missed) w*=1.6;                       // real-quiz misses drilled hardest
-    if(q.hot) w*=1.5;                          // teacher-dictated (black-marked) material
+    if(q.must) w*=2.2;                         // DOUBLE-underlined — teacher promise, every sample quiz
+    else if(q.hot) w*=1.5;                     // teacher-dictated (black-marked) material
     if(q.source==="actual") w*=1.25;
     if(r && r.last===todayKey()) w*=0.45;      // don't repeat within the day
     return {q:q, w:w*(0.65+Math.random()*0.7)};
