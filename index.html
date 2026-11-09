@@ -1343,7 +1343,7 @@ const BANK = {
 (function(){
 "use strict";
 
-const VERSION = "3.22.0";
+const VERSION = "3.22.1";
 const NS = "bibleGame.v1";
 
 /* ------------------------------------------------------------------ util */
@@ -2597,7 +2597,11 @@ function scrTestSetup(){
      'has already asked, so this mode uses <b>only real past quiz questions</b> — '+
       actualQs().length+' of them.</div></div>'+
      '<div class="sec-title">What are you studying?</div>'+
-     [{v:"all",ic:"📚",t:"Everything",s:"All "+actualQs().length+" real questions in one full run, random order"},
+     [{v:"t4",ic:"🧪",t:"TEST 4 PREP (Ch 21–24)",s:(function(){
+        const chs=[21,22,23,24];
+        const a=actualQs().filter(q=>chs.indexOf(q.chapter)>=0).length;
+        return "Everything for the test: "+a+" real quiz questions + the predicted set (one per fact), teacher-promise facts first";}())},
+      {v:"all",ic:"📚",t:"Everything",s:"All "+actualQs().length+" real questions in one full run, random order"},
       {v:"missed",ic:"🎯",t:"Missed on the real quizzes",s:
         actualQs().filter(q=>q.missed).length+" questions that cost points on Quizzes 1\u20135 \u2014 10 at a time, random order"},
       {v:"trouble",ic:"🩹",t:"Just my trouble spots",s:"The ones you keep missing in the game"}]
@@ -2614,6 +2618,27 @@ function scrTestSetup(){
     el("back").onclick=scrMap;
     el("go").onclick=()=>{
       let pool=actualQs(), title="Test Study";
+      if(choice==="t4"){
+        // Test 4 prep: real quiz questions from ch 21-24 verbatim, then the predicted
+        // set deduped to one variant per fact — must (double-underlined) first, then
+        // class-dictated, then the rest, with predicted bonuses at the end.
+        const chs=[21,22,23,24];
+        const inCh=q=>chs.indexOf(q.chapter)>=0;
+        const acts=QUESTIONS.filter(q=>q.source==="actual"&&inCh(q));
+        const covered={}; acts.forEach(q=>{ if(q.vary) covered[q.vary]=1; });
+        const picked={}; const preds=[];
+        QUESTIONS.filter(q=>q.source!=="actual"&&inCh(q)).forEach(q=>{
+          const k=q.vary||q.id;
+          if(covered[k]||picked[k]) return; picked[k]=1; preds.push(q);
+        });
+        const mains=preds.filter(q=>!q.bonus), bon=preds.filter(q=>q.bonus);
+        const deck=shuffle(acts)
+          .concat(shuffle(mains.filter(q=>q.must)))
+          .concat(shuffle(mains.filter(q=>!q.must&&q.hot)))
+          .concat(shuffle(mains.filter(q=>!q.must&&!q.hot)))
+          .concat(shuffle(bon));
+        startRound({title:"Test 4 Prep · Ch 21–24", questions:deck, mode:"test"});
+        return; }
       if(choice==="missed"){ pool=shuffle(actualQs().filter(q=>q.missed));
         title="Real-quiz misses";
         startRound({title:title, questions:pool.slice(0,12), mode:"test"}); return; }
