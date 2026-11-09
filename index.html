@@ -1373,7 +1373,7 @@ const BANK = {
 (function(){
 "use strict";
 
-const VERSION = "3.24.0";
+const VERSION = "3.24.1";
 const NS = "bibleGame.v1";
 
 /* ------------------------------------------------------------------ util */
@@ -2628,8 +2628,8 @@ function scrTestSetup(){
       actualQs().length+' of them.</div></div>'+
      '<div class="sec-title">What are you studying?</div>'+
      [{v:"t4",ic:"🧪",t:"TEST 4 PREP (Ch 21–24)",s:(function(){
-        const a=actualQs().filter(q=>q.quiz===20||q.quiz===21).length;
-        return "The exact "+a+" questions from the quizzes in the test window (Nov 3 + Nov 5), verbatim — tests are ~95% quiz recycles";}())},
+        const a=actualQs().filter(q=>q.quiz===19||q.quiz===20||q.quiz===21).length;
+        return "The exact "+a+" questions from the test-window quizzes (Oct 28 + Nov 3 + Nov 5), verbatim — tests are ~95% quiz recycles";}())},
       {v:"all",ic:"📚",t:"Everything",s:"All "+actualQs().length+" real questions in one full run, random order"},
       {v:"missed",ic:"🎯",t:"Missed on the real quizzes",s:
         actualQs().filter(q=>q.missed).length+" questions that cost points on Quizzes 1\u20135 \u2014 10 at a time, random order"},
@@ -2649,8 +2649,8 @@ function scrTestSetup(){
       let pool=actualQs(), title="Test Study";
       if(choice==="t4"){
         // Test 4 prep: the EXACT questions from the test-window quizzes (internal
-        // 20 = Nov 3, 21 = Nov 5), every one verbatim — tests recycle quizzes ~95%.
-        const deck=shuffle(QUESTIONS.filter(q=>q.quiz===20||q.quiz===21));
+        // 19 = Quiz 17 Oct 28, 20 = Nov 3, 21 = Nov 5), verbatim — ~95% recycles.
+        const deck=shuffle(QUESTIONS.filter(q=>q.quiz===19||q.quiz===20||q.quiz===21));
         startRound({title:"Test 4 Prep · Ch 21–24", questions:deck, mode:"test"});
         return; }
       if(choice==="missed"){ pool=shuffle(actualQs().filter(q=>q.missed));
